@@ -1,5 +1,19 @@
 # Release Notes
 
+## 0.2.0 - 2025-11-21
+
+- Centralized logging (breaking internal change): `dq_docker.logs` provides `configure_logging()` and `get_logger()`; all modules now use this for consistent stdout logs suitable for containers/CI.
+- ODCS and contract improvements: improved contract validation and contract-to-suite conversion, including more synthesized datatype expectations and safer `suite.meta` handling for test doubles.
+- Runtime hardening: lazy-import Great Expectations inside `main()` (so tests can inject fake `great_expectations`), defensive datasource/asset lookup across GE versions, and idempotent CSV asset creation to avoid duplicate assets on repeated runs.
+- Tests and CI: expanded pytest coverage for `contract_to_suite` and runtime behavior; tests run without a real GE install by monkeypatching `great_expectations` and the full suite passes locally.
+- Container experience: `docker-entrypoint.sh` now warns on missing folders instead of creating them, and `Dockerfile` supports `DQ_CMD` and `DQ_PROJECT_ROOT` environment overrides for flexible container runs.
+
+### Migration notes
+
+- No API breaking changes for external callers beyond the packaging move done in previous releases; however, code that relied on import-time access to the real `great_expectations` package should be adapted if it expects runtime imports at module import time.
+
+---
+
 ## 0.1.1 - 2025-11-20
 
 - Move runtime into package: `run_adls_checkpoint.py` was moved into the `dq_docker` package and now exposes a `main()` entrypoint. Run as a module with `python -m dq_docker.run_adls_checkpoint`.

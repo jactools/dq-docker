@@ -12,10 +12,14 @@ Usage:
 from pathlib import Path
 import sys
 
+import logging
+from dq_docker.logs import configure_logging
+
+configure_logging()
 try:
     import toml
 except Exception:
-    print("This script requires the 'toml' package. Install via 'pip install toml'.")
+    logging.error("This script requires the 'toml' package. Install via 'pip install toml'.")
     raise
 
 
@@ -40,7 +44,7 @@ def increment_patch(pyproject_path: Path) -> int:
             minor = int(parts[1])
             patch = int(parts[2])
         except ValueError:
-            print(f"Unrecognized version format: {version}. Setting to 0.1.1")
+            logging.warning("Unrecognized version format: %s. Setting to 0.1.1", version)
             major, minor, patch = 0, 1, 0
         patch += 1
         new_version = f"{major}.{minor}.{patch}"
@@ -50,14 +54,14 @@ def increment_patch(pyproject_path: Path) -> int:
     # Write back the pyproject.toml
     toml_string = toml.dumps(data)
     pyproject_path.write_text(toml_string, encoding="utf-8")
-    print(f"Updated pyproject.toml version -> {new_version}")
+    logging.info("Updated pyproject.toml version -> %s", new_version)
     return 0
 
 
 def main(argv):
     path = Path(argv[1]) if len(argv) > 1 else Path("pyproject.toml")
     if not path.exists():
-        print(f"pyproject file not found: {path}")
+        logging.error("pyproject file not found: %s", path)
         return 2
     return increment_patch(path)
 

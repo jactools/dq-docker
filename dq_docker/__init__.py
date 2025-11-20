@@ -1,8 +1,9 @@
-"""Top-level package for the dq_docker project.
+"""Top-level package for the `dq_docker` project.
 
-Expose the `config` subpackage for `dq_docker.config` imports.
+Expose configuration and package version.
 """
 
 from . import config
+from ._version import __version__
 
-__all__ = ["config"]
+__all__ = ["config", "__version__"]

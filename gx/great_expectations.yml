@@ -1,4 +1,3 @@
-
 # Welcome to Great Expectations! Always know what to expect from your data.
 #
 # Here you can define datasources, batch kwargs generators, integrations and
@@ -9,7 +8,7 @@
 
 # config_version refers to the syntactic version of this config file, and is used in maintaining backwards compatibility
 # It is auto-generated and usually does not need to be changed.
-config_version: 4
+config_version: 4.0
 
 # This config file supports variable substitution which enables: 1) keeping
 # secrets out of source control & 2) environment-based configuration changes
@@ -75,10 +74,26 @@ data_docs_sites:
   # profiles from the uncommitted directory. Read more at https://docs.greatexpectations.io/docs/terms/data_docs
   local_site:
     class_name: SiteBuilder
-    # set to false to hide how-to buttons in Data Docs
     show_how_to_buttons: true
     store_backend:
-        class_name: TupleFilesystemStoreBackend
-        base_directory: uncommitted/data_docs/local_site/
+      class_name: TupleFilesystemStoreBackend
+      base_directory: uncommitted/data_docs/local_site/
     site_index_builder:
-        class_name: DefaultSiteIndexBuilder
+      class_name: DefaultSiteIndexBuilder
+fluent_datasources:
+  ds_sample_data:
+    type: pandas_filesystem
+    id: 9df8c3ef-d72b-48a5-9388-304ee431862c
+    assets:
+      sample_customers:
+        type: csv
+        id: 36d5bfbc-b431-4c08-871c-aed133754e90
+        batch_definitions:
+          customers_2019.csv:
+            id: 908d5c3b-fdc8-4d2d-91cb-23c83113ef7f
+            partitioner:
+              regex: customers_2019.csv$
+              param_names: []
+    base_directory: /usr/src/app/dq_great_expectations/sample_data/customers
+analytics_enabled:
+data_context_id: 0dabaf07-3397-4169-8517-af9fc23f068c

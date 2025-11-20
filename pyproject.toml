@@ -2,13 +2,9 @@
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "dq-docker"
-version = "0.1.1"
+version = "0.2.0"
 description = "DataQuality Docker project using Great Expectations"
 readme = "README.md"
 requires-python = ">=3.8"

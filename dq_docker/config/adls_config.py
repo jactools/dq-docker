@@ -1,7 +1,13 @@
+# Compute PROJECT_ROOT relative to this config file's location so it's stable
+# regardless of the current working directory. This should point to the
+# repository root. Use two levels up from `dq_docker/config` so when the
+# repository is mounted at `/usr/src/app` in the container `PROJECT_ROOT`
+# resolves to `/usr/src/app` (not `/usr/src`).
 import os
-
-# Project root (default to cwd; override if necessary)
-PROJECT_ROOT = os.getcwd()
+# Allow an environment override so container/CI can explicitly set the project
+# root without changing code. Fall back to the computed repo root when not set.
+_computed_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PROJECT_ROOT = os.environ.get("DQ_PROJECT_ROOT", _computed_root)
 
 # Data Docs
 DATA_DOCS_SITE_NAME = "local_site"
@@ -11,12 +17,12 @@ DATA_DOCS_CONFIG = {
     "site_index_builder": {"class_name": "DefaultSiteIndexBuilder"},
     "store_backend": {
         "class_name": "FilesystemStoreBackend",
-        "base_directory": os.path.join(PROJECT_ROOT, "great_expectations", "uncommitted", "data_docs", DATA_DOCS_SITE_NAME),
+            "base_directory": os.path.join(PROJECT_ROOT, "dq_great_expectations", "uncommitted", "data_docs", DATA_DOCS_SITE_NAME),
     },
 }
 
 # Data source / asset configuration
-SOURCE_FOLDER = os.path.join(PROJECT_ROOT, "great_expectations", "sample_data", "customers")
+SOURCE_FOLDER = os.path.join(PROJECT_ROOT, "dq_great_expectations", "sample_data", "customers")
 DATA_SOURCE_NAME = "ds_sample_data"
 ASSET_NAME = "sample_customers"
 

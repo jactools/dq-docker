@@ -1,16 +1,16 @@
 import great_expectations as gx
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union, Any
 from .data_contract import suite_to_contract, contract_to_suite
 
 
 def build_expectation_suite(
     name: str,
     *,
-    contract_path: Optional[str | Path] = None,
+    contract_path: Optional[Union[str, Path]] = None,
     export_contract: bool = False,
-    contract_out_path: Optional[str | Path] = None,
-) -> gx.core.expectation_suite.ExpectationSuite:
+    contract_out_path: Optional[Union[str, Path]] = None,
+) -> Any:
     """Return an ExpectationSuite loaded from an ODCS contract.
 
     This project requires expectation suites to be expressed as Open Data
