@@ -1,0 +1,27 @@
+# great_expectations/checkpoints/adls_checkpoint.yml
+
+name: adls_checkpoint
+config_version: 1.0
+class_name: Checkpoint
+module_name: great_expectations.checkpoint
+
+# Configure the validations this checkpoint will run
+validations:
+  - batch_request:
+      datasource_name: adls_datasource # Must match the name in great_expectations.yml
+      data_connector_name: default_filesystem_data_connector
+      data_asset_name: my_adls_data_asset # The name of the specific file/folder in ADLS
+      # Additional batch_spec_passthrough options can go here if needed (e.g. reader options)
+    expectation_suite_name: adls_data_quality_suite # Must match the suite name from step 1
+
+# Actions to perform after validation runs (e.g., build Data Docs, send emails)
+action_list:
+  - name: store_validation_result
+    action:
+      class_name: StoreValidationResultAction
+  - name: store_evaluation_params
+    action:
+      class_name: StoreEvaluationParametersAction
+  - name: update_data_docs
+    action:
+      class_name: UpdateDataDocsAction

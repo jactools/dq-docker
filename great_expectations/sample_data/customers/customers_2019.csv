@@ -1,0 +1,31 @@
+customer_id,first_name,last_name,email,phone,signup_date,last_order_date,total_spend,city,state,postal_code,country,is_active,birth_date,gender
+1,Emma,Watson,emma.watson@example.com,555-415-0190,2019-01-15,2019-12-20,254.75,Boston,MA,02108,US,TRUE,1988-04-15,F
+2,Liam,Johnson,liam.johnson@example.com,555-302-1187,2019-02-03,2019-11-02,1024.50,Seattle,WA,98101,US,TRUE,1990-09-02,M
+3,Olivia,Martinez,olivia.martinez@example.com,555-213-4421,2019-03-22,2019-05-18,48.00,San Diego,CA,92101,US,TRUE,1985-11-30,F
+4,Noah,Smith,noah.smith@example.com,555-867-5309,2019-04-10,2019-12-01,560.20,Chicago,IL,60601,US,TRUE,1979-06-10,M
+5,Ava,Brown,ava.brown@example.com,555-908-3344,2019-05-05,2019-07-14,0.00,Miami,FL,33101,US,FALSE,1995-02-21,F
+6,William,Jones,william.jones@example.com,555-701-2233,2019-06-01,2019-12-30,789.99,Dallas,TX,75201,US,TRUE,1982-12-05,M
+7,Sophia,Davis,sophia.davis@example.com,555-402-5544,2019-07-19,2019-08-02,32.50,Portland,OR,97201,US,TRUE,1993-10-12,F
+8,James,García,james.garcia@example.com,555-314-1592,2019-08-08,2019-09-20,410.00,Denver,CO,80201,US,TRUE,1987-03-03,M
+9,Isabella,Miller,isabella.miller@example.com,555-222-3344,2019-09-12,2019-10-11,125.75,Atlanta,GA,30301,US,TRUE,1991-07-07,F
+10,Benjamin,Wilson,ben.wilson@example.com,555-999-1010,2019-10-01,2019-10-15,60.00,Raleigh,NC,27601,US,TRUE,1984-01-25,M
+11,Mia,Moore,mia.moore@example.com,555-121-2121,2019-10-20,,0.00,Boise,ID,83701,US,FALSE,2000-05-30,F
+12,Lucas,Taylor,lucas.taylor@example.com,555-333-4444,2019-11-03,2019-11-25,300.00,Phoenix,AZ,85001,US,TRUE,1992-08-16,M
+13,Charlotte,Anderson,charlotte.anderson@example.com,555-555-0101,2019-12-05,2019-12-20,1500.00,San Francisco,CA,94102,US,TRUE,1986-09-29,F
+14,Henry,Thomas,henry.thomas@example.com,555-444-7878,2019-01-27,2019-03-05,20.00,Columbus,OH,43004,US,TRUE,1976-11-02,M
+15,Amelia,Jackson,amelia.jackson@example.com,555-676-1234,2019-02-14,2019-05-22,87.65,Minneapolis,MN,55401,US,TRUE,1994-04-18,F
+16,Alexander,White,alex.white@example.com,555-800-1999,2019-03-30,2019-09-30,640.40,Charlotte,NC,28202,US,TRUE,1980-08-08,M
+17,Evelyn,Harris,evelyn.harris@example.com,555-110-2200,2019-04-18,2019-04-25,12.99,St. Louis,MO,63101,US,TRUE,1996-12-12,F
+18,Daniel,Martin,daniel.martin@example.com,555-707-0707,2019-05-29,2019-11-11,234.10,Indianapolis,IN,46204,US,TRUE,1981-07-20,M
+19,Harper,Thompson,harper.thompson@example.com,555-212-9090,2019-06-21,2019-08-08,95.00,Las Vegas,NV,89101,US,TRUE,1998-03-27,F
+20,Michael,Garcia,michael.garcia@example.com,555-777-1212,2019-07-02,2019-12-12,420.00,San Antonio,TX,78205,US,TRUE,1975-05-15,M
+21,Ella,Martinez,ella.martinez@example.com,555-636-2727,2019-08-15,2019-10-30,310.60,Orlando,FL,32801,US,TRUE,1997-06-05,F
+22,Matthew,Robinson,matthew.robinson@example.com,555-353-3535,2019-09-05,2019-11-02,10.00,New York,NY,10001,US,TRUE,1989-10-10,M
+23,Abigail,Clark,abigail.clark@example.com,555-242-4242,2019-10-11,2019-12-01,725.25,Philadelphia,PA,19019,US,TRUE,1991-01-01,F
+24,Christopher,Rodriguez,chris.rodriguez@example.com,555-878-8787,2019-11-22,,0.00,Baltimore,MD,21201,US,FALSE,1983-02-14,M
+25,Scarlett,Lewis,scarlett.lewis@example.com,555-909-9090,2019-12-30,2019-12-30,5.99,San Jose,CA,95101,US,TRUE,1999-09-09,F
+26,David,Lee,david.lee@example.com,555-404-4040,2019-02-28,2019-06-06,199.99,Austin,TX,73301,US,TRUE,1978-03-03,M
+27,Victoria,Walker,victoria.walker@example.com,555-212-1111,2019-03-14,2019-07-21,412.30,Sacramento,CA,94203,US,TRUE,1990-12-24,F
+28,Joseph,Hall,joseph.hall@example.com,555-111-3333,2019-04-02,2019-09-09,88.88,Milwaukee,WI,53202,US,TRUE,1985-05-05,M
+29,Grace,Allen,grace.allen@example.com,555-666-0000,2019-05-17,2019-06-30,60.50,Kansas City,MO,64101,US,TRUE,1996-11-11,F
+30,Samuel,Young,samuel.young@example.com,555-121-3434,2019-06-30,2019-12-15,999.95,Richmond,VA,23219,US,TRUE,1988-08-18,M
