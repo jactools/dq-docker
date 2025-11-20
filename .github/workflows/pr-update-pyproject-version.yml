@@ -1,0 +1,39 @@
+name: Update pyproject version on PR
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  update-pyproject-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Show PR number
+        run: echo "PR number = ${{ github.event.number }}"
+
+      - name: Update pyproject version (patch -> PR number)
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          python .github/scripts/update_pyproject_version.py $PR_NUMBER pyproject.toml
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "chore(release): set pyproject version to patch=${{ github.event.number }}" || echo "No changes to commit"
+          git push origin HEAD:${{ github.head_ref }}
