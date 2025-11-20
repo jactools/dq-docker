@@ -47,5 +47,12 @@ Notes
 CI / Versioning
 - A GitHub Actions workflow increments the patch version in `pyproject.toml` on push (see `.github/workflows/increment-patch-on-push.yml`). This repository uses `pyproject.toml` as the canonical version file.
 
+Details about the CI bump:
+
+- The workflow triggers on repository `push` events and runs the helper script `.github/scripts/update_pyproject_version.py`.
+- The script parses `pyproject.toml`, increments the patch segment of `[project].version`, and commits the updated file back to the branch using the Actions runner token (`GITHUB_TOKEN`).
+- The workflow is configured to avoid infinite loops by skipping runs created by the version-bump automation (it checks the event actor and/or commit message).
+- If you need the bump to run only on specific branches or under different actors, edit `.github/workflows/increment-patch-on-push.yml` accordingly.
+
 Contact
 - Repository owner: `jactools`
