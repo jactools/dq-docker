@@ -1,0 +1,41 @@
+{
+  "contract_version": "1.0",
+  "name": "customers_2019",
+  "description": "Open Data Contract for sample customers_2019.csv: basic null, range and email-format expectations.",
+  "issued_at": "2025-11-20T00:00:00Z",
+  "issuer": "jactools",
+  "columns": [
+    { "name": "customer_id", "dtype": "integer" },
+    { "name": "first_name", "dtype": "string" },
+    { "name": "last_name", "dtype": "string" },
+    { "name": "email", "dtype": "string" },
+    { "name": "phone", "dtype": "string" },
+    { "name": "signup_date", "dtype": "date" },
+    { "name": "last_order_date", "dtype": "date_nullable" },
+    { "name": "total_spend", "dtype": "number" },
+    { "name": "city", "dtype": "string" },
+    { "name": "state", "dtype": "string" },
+    { "name": "postal_code", "dtype": "string" },
+    { "name": "country", "dtype": "string" },
+    { "name": "is_active", "dtype": "boolean" },
+    { "name": "birth_date", "dtype": "date" },
+    { "name": "gender", "dtype": "string" }
+  ],
+  "expectations": [
+    {
+      "expectation_type": "ExpectColumnValuesToNotBeNull",
+      "kwargs": { "column": "customer_id" },
+      "meta": { "note": "Primary identifier should not be null" }
+    },
+    {
+      "expectation_type": "ExpectColumnValuesToBeBetween",
+      "kwargs": { "column": "total_spend", "min_value": 100, "max_value": 999999 },
+      "meta": { "note": "Total spend should be in a reasonable positive range" }
+    },
+    {
+      "expectation_type": "ExpectColumnValuesToMatchRegex",
+      "kwargs": { "column": "email", "regex": "[^@]+@[^@]+\\.[^@]+" },
+      "meta": { "note": "Email should match a basic email pattern" }
+    }
+  ]
+}
