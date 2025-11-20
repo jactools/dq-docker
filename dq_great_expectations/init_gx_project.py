@@ -2,7 +2,7 @@ import great_expectations as gx
 import os
 
 # Define the root directory (optional, defaults to current working directory if not specified)
-project_root = os.getcwd() 
+project_root = os.getcwd()
 
 print(f"Attempting to initialize/load project in: {project_root}")
 
