@@ -2,7 +2,7 @@ import os
 import great_expectations as gx
 from great_expectations.checkpoint import UpdateDataDocsAction
 
-from adls_config import (
+from config.adls_config import (
     PROJECT_ROOT,
     DATA_DOCS_SITE_NAME,
     DATA_DOCS_CONFIG,
