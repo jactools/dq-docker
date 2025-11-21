@@ -7,6 +7,8 @@ import json
 
 from .odcs_validator import validate_contract
 from typing import Any
+from types import SimpleNamespace
+from uuid import uuid4
 
 
 CONTRACT_MAJOR = 1
@@ -78,7 +80,72 @@ def contract_to_suite(contract_path: str | Path):
 
     p = Path(contract_path)
     name = data.get("name") or f"contract-{p.stem}"
-    suite = gx.ExpectationSuite(name=name)
+
+    # Collect expectation configurations as plain dicts (or
+    # ExpectationConfiguration-compatible objects) and construct the
+    # ExpectationSuite with them. Constructing the suite this way avoids
+    # calling `ExpectationSuite.add_expectation` which can attempt to access
+    # a persisted store and a DataContext during runtime.
+    expectation_configs = []
+    legacy_expectation_configs = []
+
+    def _to_legacy_name(type_str: str | None) -> str | None:
+        if not type_str:
+            return None
+        # convert snake_case to PascalCase Expectation names used in older tests
+        parts = type_str.split("_")
+        return "".join(p.title() for p in parts)
+
+    # Helper: build an ExpectationConfiguration-like object from a dict.
+    def _make_expectation_config(expectation_dict):
+        """Try several import paths for GE's ExpectationConfiguration.
+
+        If none are available, return a minimal object that provides an
+        `id` attribute and the usual fields so `ExpectationSuite.add_expectation`
+        can operate without raising AttributeError.
+        """
+        # Try common import locations
+        ec_cls = None
+        try:
+            from great_expectations.core.expectation_configuration import ExpectationConfiguration  # type: ignore
+            ec_cls = ExpectationConfiguration
+        except Exception:
+            try:
+                from great_expectations.expectations.expectation import ExpectationConfiguration  # type: ignore
+                ec_cls = ExpectationConfiguration
+            except Exception:
+                ec_cls = getattr(__import__("great_expectations"), "ExpectationConfiguration", None)
+
+        if ec_cls:
+            try:
+                # Support both 'type' and legacy 'expectation_type' keys.
+                etype = expectation_dict.get("type") or expectation_dict.get("expectation_type")
+                ec = ec_cls(type=etype, kwargs=expectation_dict.get("kwargs", {}), meta=expectation_dict.get("meta", {}))
+                # Ensure the expectation isn't tied to another suite (some GE
+                # implementations may set an internal suite/id); clear id so it
+                # can be added safely to the target suite.
+                try:
+                    setattr(ec, "id", None)
+                except Exception:
+                    pass
+                try:
+                    if hasattr(ec, "expectation_suite"):
+                        setattr(ec, "expectation_suite", None)
+                except Exception:
+                    pass
+                return ec
+            except Exception:
+                # fall through to minimal object
+                pass
+
+        # Minimal fallback object with an `id` attribute
+        fallback = SimpleNamespace(
+            expectation_type=expectation_dict.get("expectation_type"),
+            kwargs=expectation_dict.get("kwargs", {}),
+            meta=expectation_dict.get("meta", {}),
+            id=f"{expectation_dict.get('expectation_type')}-{uuid4()}",
+        )
+        return fallback
 
     # First, create datatype validation expectations from the `columns` section
     for col in data.get("columns", []):
@@ -93,41 +160,29 @@ def contract_to_suite(contract_path: str | Path):
         # Add type validation expectations using regex or set membership
         if ctype == "integer":
             regex = r"^\d+$"
-            expectation = {
-                "expectation_type": "ExpectColumnValuesToMatchRegex",
-                "kwargs": {"column": col_name, "regex": regex},
-                "meta": {"note": "Column should contain integer values"},
-            }
-            suite.add_expectation(expectation)
+            expectation = {"type": "expect_column_values_to_match_regex", "kwargs": {"column": col_name, "regex": regex}, "meta": {"note": "Column should contain integer values"}}
+            expectation_configs.append(expectation)
+            legacy_expectation_configs.append({"expectation_type": _to_legacy_name(expectation["type"]), "kwargs": expectation["kwargs"], "meta": expectation["meta"]})
         elif ctype == "number":
             regex = r"^-?\d+(?:\.\d+)?$"
-            expectation = {
-                "expectation_type": "ExpectColumnValuesToMatchRegex",
-                "kwargs": {"column": col_name, "regex": regex},
-                "meta": {"note": "Column should contain numeric values"},
-            }
-            suite.add_expectation(expectation)
+            expectation = {"type": "expect_column_values_to_match_regex", "kwargs": {"column": col_name, "regex": regex}, "meta": {"note": "Column should contain numeric values"}}
+            expectation_configs.append(expectation)
+            legacy_expectation_configs.append({"expectation_type": _to_legacy_name(expectation["type"]), "kwargs": expectation["kwargs"], "meta": expectation["meta"]})
         elif ctype == "boolean":
             # Allow common boolean representations in CSVs
             regex = r"^(?:TRUE|FALSE|True|False|true|false|0|1)$"
-            expectation = {
-                "expectation_type": "ExpectColumnValuesToMatchRegex",
-                "kwargs": {"column": col_name, "regex": regex},
-                "meta": {"note": "Column should contain boolean-like values"},
-            }
-            suite.add_expectation(expectation)
+            expectation = {"type": "expect_column_values_to_match_regex", "kwargs": {"column": col_name, "regex": regex}, "meta": {"note": "Column should contain boolean-like values"}}
+            expectation_configs.append(expectation)
+            legacy_expectation_configs.append({"expectation_type": _to_legacy_name(expectation["type"]), "kwargs": expectation["kwargs"], "meta": expectation["meta"]})
         elif ctype == "string" and fmt == "date":
             # Simple ISO date YYYY-MM-DD; allow empty if nullable
             if nullable:
                 regex = r"^(?:\d{4}-\d{2}-\d{2})?$"
             else:
                 regex = r"^\d{4}-\d{2}-\d{2}$"
-            expectation = {
-                "expectation_type": "ExpectColumnValuesToMatchRegex",
-                "kwargs": {"column": col_name, "regex": regex},
-                "meta": {"note": "Column should contain ISO dates (YYYY-MM-DD)"},
-            }
-            suite.add_expectation(expectation)
+            expectation = {"type": "expect_column_values_to_match_regex", "kwargs": {"column": col_name, "regex": regex}, "meta": {"note": "Column should contain ISO dates (YYYY-MM-DD)"}}
+            expectation_configs.append(expectation)
+            legacy_expectation_configs.append({"expectation_type": _to_legacy_name(expectation["type"]), "kwargs": expectation["kwargs"], "meta": expectation["meta"]})
 
     # Then add any explicit expectations declared in the contract
     for e in data.get("expectations", []):
@@ -135,13 +190,39 @@ def contract_to_suite(contract_path: str | Path):
         kwargs = e.get("kwargs", {})
         meta = e.get("meta", {})
 
-        # Build minimal expectation dict accepted by GE
+        # Build minimal expectation dict accepted by GE and convert to
+        # ExpectationConfiguration when available so GE's suite.add_expectation
+        # (which may expect an object with an `id` attribute) works reliably.
         expectation = {
             "expectation_type": etype,
             "kwargs": kwargs,
             "meta": meta,
         }
-        suite.add_expectation(expectation)
+        # Explicit expectations from the contract: map `expectation_type` -> `type`
+        # to match GE's constructor signature.
+        cfg = {"type": (etype or None), "kwargs": kwargs, "meta": meta}
+        expectation_configs.append(cfg)
+        legacy_expectation_configs.append({"expectation_type": (etype or None), "kwargs": kwargs, "meta": meta})
+
+    # Construct the ExpectationSuite with the collected expectation configs.
+    try:
+        # Newer GE versions accept `expectations` in the constructor.
+        suite = gx.ExpectationSuite(name=name, expectations=expectation_configs)
+    except TypeError:
+        # Fallback for lightweight/fake GE modules used in tests: construct
+        # an empty suite and append expectations using add_expectation.
+        suite = gx.ExpectationSuite(name=name)
+        for cfg in legacy_expectation_configs:
+            try:
+                suite.add_expectation(cfg)
+            except Exception:
+                # If add_expectation expects an Expectation object, try to
+                # construct one via the suite internals or fallback helper.
+                try:
+                    exp = suite._process_expectation(cfg)
+                    suite.add_expectation(exp)
+                except Exception:
+                    suite.add_expectation(_make_expectation_config(cfg))
 
     # Attach contract metadata into suite.meta for provenance.
     # Use getattr/setattr and try/except so fake or minimal suite objects

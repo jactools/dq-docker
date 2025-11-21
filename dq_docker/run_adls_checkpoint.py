@@ -182,7 +182,69 @@ def main():
 
     logger.info("Files: %s", os.listdir(SOURCE_FOLDER))
 
-    batch_definition = file_customers.add_batch_definition_path(name=BATCH_DEFINITION_NAME, path=BATCH_DEFINITION_PATH)
+    def _find_batch_definition(asset, name, path):
+        """Defensively locate a batch definition on an asset by name or path.
+
+        Returns the batch definition object if found, else None.
+        """
+        if asset is None:
+            return None
+
+        # 1) try manager-style get_batch_definition
+        try:
+            get_fn = getattr(asset, "get_batch_definition", None) or getattr(asset, "get", None)
+            if callable(get_fn):
+                try:
+                    bd = get_fn(name)
+                    if bd:
+                        return bd
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        # 2) try list_batch_definitions() or an attribute
+        try:
+            list_fn = getattr(asset, "list_batch_definitions", None) or getattr(asset, "list", None)
+            items = None
+            if callable(list_fn):
+                try:
+                    items = list_fn()
+                except Exception:
+                    items = None
+            else:
+                items = getattr(asset, "batch_definitions", None)
+
+            if isinstance(items, dict):
+                if name in items:
+                    return items[name]
+                # try matching by path
+                for v in items.values():
+                    try:
+                        if getattr(v, "path", None) == path:
+                            return v
+                    except Exception:
+                        pass
+            elif isinstance(items, list):
+                for it in items:
+                    if isinstance(it, dict) and it.get("name") == name:
+                        return it
+                    # try objects with attributes
+                    try:
+                        if getattr(it, "name", None) == name:
+                            return it
+                        if getattr(it, "path", None) == path:
+                            return it
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+        return None
+
+    batch_definition = _find_batch_definition(file_customers, BATCH_DEFINITION_NAME, BATCH_DEFINITION_PATH)
+    if not batch_definition:
+        batch_definition = file_customers.add_batch_definition_path(name=BATCH_DEFINITION_NAME, path=BATCH_DEFINITION_PATH)
 
     # Fetch a batch to inspect
     batch = batch_definition.get_batch()
@@ -212,9 +274,60 @@ def main():
 
     # Build ValidationDefinition and add to the context
     validation_definition = gx.ValidationDefinition(name=DEFINITION_NAME, data=batch_definition, suite=suite)
-    validation_definition = context.validation_definitions.add(validation_definition)
-    msg = f"✅ Validation Definition '{DEFINITION_NAME}' created."
-    logger.info(msg)
+    # Try to add the validation definition; if it already exists, attempt to
+    # locate and reuse the existing one to make this operation idempotent.
+    try:
+        validation_definition = context.validation_definitions.add(validation_definition)
+        logger.info("✅ Validation Definition '%s' created.", DEFINITION_NAME)
+    except Exception:
+        logger.info("ℹ️ Validation Definition '%s' may already exist; attempting to reuse.", DEFINITION_NAME)
+        validation_definition = None
+        try:
+            vd_manager = getattr(context, "validation_definitions", None)
+            # 1) try manager.get(name)
+            get_fn = getattr(vd_manager, "get", None)
+            if callable(get_fn):
+                try:
+                    validation_definition = get_fn(DEFINITION_NAME)
+                except Exception:
+                    validation_definition = None
+
+            # 2) try listing definitions via manager.list() or context.list_validation_definitions()
+            if validation_definition is None:
+                list_fn = getattr(vd_manager, "list", None) or getattr(context, "list_validation_definitions", None)
+                if callable(list_fn):
+                    try:
+                        items = list_fn()
+                        if isinstance(items, dict) and DEFINITION_NAME in items:
+                            validation_definition = items[DEFINITION_NAME]
+                        elif isinstance(items, list):
+                            for it in items:
+                                if isinstance(it, dict) and it.get("name") == DEFINITION_NAME:
+                                    validation_definition = it
+                                    break
+                    except Exception:
+                        validation_definition = None
+
+            # 3) fallback: try reading context.validation_definitions attribute if iterable
+            if validation_definition is None:
+                try:
+                    items = getattr(context, "validation_definitions", None)
+                    if isinstance(items, list):
+                        for it in items:
+                            try:
+                                if getattr(it, "name", None) == DEFINITION_NAME or (isinstance(it, dict) and it.get("name") == DEFINITION_NAME):
+                                    validation_definition = it
+                                    break
+                            except Exception:
+                                pass
+                except Exception:
+                    validation_definition = None
+        except Exception:
+            validation_definition = None
+
+        if validation_definition is None:
+            logger.error("Failed to add or find Validation Definition '%s'.", DEFINITION_NAME)
+            raise
 
     validation_results = validation_definition.run()
     if validation_results.get("success"):

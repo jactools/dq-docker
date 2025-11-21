@@ -1,0 +1,84 @@
+{
+  "expectations": [
+    {
+      "id": "c7833bdd-7ea5-4a8b-98d3-7720628d92c5",
+      "kwargs": {
+        "column": "customer_id",
+        "regex": "^\\d+$"
+      },
+      "meta": {
+        "note": "Column should contain integer values"
+      },
+      "severity": "critical",
+      "type": "expect_column_values_to_match_regex"
+    },
+    {
+      "id": "657fa45a-3cc4-4d3d-9f61-f04c489a0ca2",
+      "kwargs": {
+        "column": "signup_date",
+        "regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      "meta": {
+        "note": "Column should contain ISO dates (YYYY-MM-DD)"
+      },
+      "severity": "critical",
+      "type": "expect_column_values_to_match_regex"
+    },
+    {
+      "id": "03247787-0987-4aa0-a287-92aed6a2457c",
+      "kwargs": {
+        "column": "last_order_date",
+        "regex": "^(?:\\d{4}-\\d{2}-\\d{2})?$"
+      },
+      "meta": {
+        "note": "Column should contain ISO dates (YYYY-MM-DD)"
+      },
+      "severity": "critical",
+      "type": "expect_column_values_to_match_regex"
+    },
+    {
+      "id": "b3a37f6f-d8b1-400f-862f-7f452d101361",
+      "kwargs": {
+        "column": "total_spend",
+        "regex": "^-?\\d+(?:\\.\\d+)?$"
+      },
+      "meta": {
+        "note": "Column should contain numeric values"
+      },
+      "severity": "critical",
+      "type": "expect_column_values_to_match_regex"
+    },
+    {
+      "id": "8516b92b-d182-409d-9040-bc57c05c4d42",
+      "kwargs": {
+        "column": "is_active",
+        "regex": "^(?:TRUE|FALSE|True|False|true|false|0|1)$"
+      },
+      "meta": {
+        "note": "Column should contain boolean-like values"
+      },
+      "severity": "critical",
+      "type": "expect_column_values_to_match_regex"
+    },
+    {
+      "id": "42f4f700-9e63-4c23-ae61-d6db8d3cf025",
+      "kwargs": {
+        "column": "birth_date",
+        "regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      "meta": {
+        "note": "Column should contain ISO dates (YYYY-MM-DD)"
+      },
+      "severity": "critical",
+      "type": "expect_column_values_to_match_regex"
+    }
+  ],
+  "id": "6635ee91-70f8-4cf1-8db5-dcb83f863c6f",
+  "meta": {
+    "contract_source": "/usr/src/app/contracts/customers_2019.contract.json",
+    "contract_version": "1.0",
+    "great_expectations_version": "1.9.0"
+  },
+  "name": "customers_2019",
+  "notes": null
+}

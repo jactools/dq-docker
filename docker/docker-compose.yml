@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  datadocs:
+    image: nginx:stable-alpine
+    container_name: dq_datadocs_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      # Mount the generated Great Expectations Data Docs site into nginx html root.
+      # Path is relative to this compose file (docker/), so use ../gx to reach project gx/
+      - ../gx/uncommitted/data_docs/local_site:/usr/share/nginx/html:ro
+      # Use our custom nginx configuration (located at docker/nginx/nginx.conf)
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
+# Notes:
+# - Ensure your Data Docs are generated into `gx/uncommitted/data_docs/local_site` (or adjust the volume path).
+# - Run `docker compose up -d` from the project root, then open http://localhost:8080

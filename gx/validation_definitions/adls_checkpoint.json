@@ -1,0 +1,22 @@
+{
+  "data": {
+    "asset": {
+      "id": "36d5bfbc-b431-4c08-871c-aed133754e90",
+      "name": "sample_customers"
+    },
+    "batch_definition": {
+      "id": "908d5c3b-fdc8-4d2d-91cb-23c83113ef7f",
+      "name": "customers_2019.csv"
+    },
+    "datasource": {
+      "id": "9df8c3ef-d72b-48a5-9388-304ee431862c",
+      "name": "ds_sample_data"
+    }
+  },
+  "id": "4c0203ca-4526-4c1d-a9e2-290bbb67d878",
+  "name": "adls_checkpoint",
+  "suite": {
+    "id": "6635ee91-70f8-4cf1-8db5-dcb83f863c6f",
+    "name": "customers_2019"
+  }
+}
