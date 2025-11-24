@@ -9,6 +9,28 @@
 - **CI / Releasing:** added example workflows `.github/workflows/build-with-data-docs.example.yml` and `.github/workflows/ci-build-and-publish.example.yml` showing how to generate Data Docs, build the package image, build the nginx image with embedded Data Docs, and optionally push images to a registry.
 - **Docs:** updated `README.md` and `CONTRIBUTING.md` with production build/run instructions and CI guidance.
 
+## 0.2.9 - 2025-11-24
+
+- **Behavior:** canonical contract filename resolution — the runtime now
+	derives the canonical contract name by stripping a trailing `_YYYY`
+	suffix from batch definition stems (for example `customers_2019` ->
+	`customers`). This avoids maintaining duplicate year-suffixed contract
+	files and keeps expectation suites stable.
+
+- **Runtime:** when `DQ_DATA_SOURCE` is unset the runtime will iterate
+	and validate all configured data sources (useful for validating
+	multiple historical batches). `runit.sh --prod` now warns instead of
+	aborting when `DQ_DATA_SOURCE` is unset and will proceed to validate
+	all configured sources; set `DQ_DATA_SOURCE` to target a single
+	source.
+
+- **Docs:** `README.md` and `CONTRIBUTING.md` updated to document the
+	canonical-contract behavior, how to run targeted vs. full validations,
+	and local test instructions (`PYTHONPATH=. pytest`).
+
+- **Tests:** unit tests were updated and the full test suite passes
+	locally (`23 passed, 1 skipped, 2 warnings`).
+
 ### Notes
 
 - This patch focuses on packaging and deployment ergonomics: it provides a reproducible CI pattern to produce a single deployable nginx image containing Data Docs so runtime deployments do not depend on host mounts. The repository's existing testing, GE-compatibility and idempotency improvements remain unchanged.
