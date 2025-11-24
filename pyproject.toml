@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dq-docker"
-version = "0.2.14"
+version = "0.2.15"
 description = "DataQuality Docker project using Great Expectations"
 readme = "README.md"
 requires-python = ">=3.8"
