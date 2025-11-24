@@ -38,9 +38,22 @@
 
 ## 0.2.0 - 2025-11-21
 
-	- Idempotent batch-definition handling: the runtime now detects and reuses existing batch definitions (by name or path) on assets and only calls `add_batch_definition_path` when a matching batch definition is not present. This prevents duplicate batch definitions on repeated runs.
-	- ExpectationConfiguration conversion: `dq_docker/data_contract.py` now converts expectation dictionaries into Great Expectations' `ExpectationConfiguration` objects before adding them to an `ExpectationSuite` when GE is available. This fixes an AttributeError raised by `ExpectationSuite.add_expectation` in some GE versions.
-	- New unit test: `tests/test_contract_to_suite_expectation_config.py` verifies that `contract_to_suite` yields `ExpectationConfiguration` instances when GE is installed; the test skips gracefully when GE is absent.
+## 0.2.5 - 2025-11-24
+
+- **Release:** bump to `0.2.5`.
+- **Testing & CI:** added a unified GitHub Actions workflow (`.github/workflows/ci.yml`) that installs pinned development dependencies from `requirements-dev.txt`, caches pip, installs the package in editable mode, and runs the full `pytest` suite. Added `requirements.txt` and `requirements-dev.txt` generated from `pyproject.toml` to make CI installs reproducible.
+- **Unit & Integration tests:** added several tests to improve coverage and guard regressions:
+	- `tests/test_contract_normalization.py` — ensures legacy PascalCase expectation names in contracts are normalized to GE snake_case.
+	- `tests/test_datasource_recreate.py` — unit test asserting fluent datasource recreation when `base_directory` mismatches (prevents container vs host path failures).
+	- `tests/test_end_to_end_checkpoint.py` — an integration-style smoke test that runs an end-to-end checkpoint and verifies Data Docs are produced; the test skips when a real Great Expectations package isn't available (so unit test runs remain fast and deterministic).
+- **Runtime fixes:** addressed an `IndentationError` in `dq_docker/data_source.py` and improved datasource recreation logic to automatically recreate a pandas_filesystem datasource if its configured `base_directory` differs from runtime `SOURCE_FOLDER` (this reduces friction running GE configs that contain container paths).
+- **Contract handling:** added normalization logic in `dq_docker/data_contract.py` to convert Pascal/CamelCase expectation names to snake_case before constructing GE expectation configs, preventing ExpectationNotFound errors when ingesting legacy contract formats.
+- **Packaging:** pinned `great_expectations[azure]==1.8.1` and constrained `pandas>=1.3,<2` in `pyproject.toml` to lock to a known-compatible runtime matrix.
+
+### Notes
+
+- The new tests increase confidence when refactoring GE interactions. The integration smoke test is intentionally conservative and will be skipped if Great Expectations is not installed; CI runs the full integration test because the workflow installs dev dependencies.
+- Consider adding a locked `requirements-locked.txt` (fully pinned transitive deps) if you want fully reproducible environment installs in CI and builds.
 
 ### Migration notes
 
