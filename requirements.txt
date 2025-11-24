@@ -1,11 +1,6 @@
-# Generated from pyproject.toml
-# Primary runtime dependencies
+# Primary runtime dependencies (kept in sync with `pyproject.toml`)
 great_expectations[azure]==1.8.1
 azure-storage-file-datalake
 azure-identity
 pandas>=1.3,<2
-great_expectations[azure]
-azure-storage-file-datalake
-azure-identity
-pandas
 pyyaml
