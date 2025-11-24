@@ -54,6 +54,11 @@ jobs:
       - name: Install build & test dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
+          # Ensure we can parse pyproject.toml and generate requirements
+          pip install toml
+          # Generate requirements.txt from pyproject.toml so legacy setup.py / installers
+          # that consume requirements.txt remain in sync with pyproject.
+          python .github/scripts/generate_requirements.py
           # Install the project and its declared dependencies from pyproject.toml
           pip install -e .
           pip install pytest
