@@ -9,7 +9,7 @@ import sys
 
 sys.path.insert(0, ".")
 
-from dq_docker.config.adls_config import SOURCE_FOLDER, BATCH_DEFINITION_NAME, EXPECTATION_SUITE_NAME
+from dq_docker.config.gx_config import SOURCE_FOLDER, BATCH_DEFINITION_NAME, EXPECTATION_SUITE_NAME
 from dq_docker.expectations import build_expectation_suite
 import logging
 

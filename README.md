@@ -62,6 +62,22 @@ Notes:
 	building the nginx image there; this produces a single, deployable
 	artifact with no runtime mount dependencies.
 
+Note on strict runtime validation
+
+- The runtime and helper scripts enforce strict validation in production
+  mode: `runit.sh --prod` and `buildit.sh --prod` require the
+  `DQ_DATA_SOURCE` environment variable to be set and point to a known
+  data source key (for example `ds_sample_data`). This is intentional
+  to avoid silently running against an unexpected/default data source.
+
+Examples:
+
+```bash
+export DQ_DATA_SOURCE=ds_sample_data
+./buildit.sh --prod
+./runit.sh --prod --serve-docs
+```
+
 
 ### Environment variables
 
@@ -81,6 +97,15 @@ Notes:
 ```bash
 PYTHONPATH=. pytest -q
 ```
+
+CI
+
+- A GitHub Actions workflow `/.github/workflows/ci.yml` runs the test suite on pushes and PRs to `main`.
+- The workflow sets up Python 3.9 and installs `pytest` and `great_expectations` before running the test suite.
+
+Integration smoke tests
+
+- The repo includes a lightweight integration-style test `tests/test_datasource_recreate.py` which asserts the runtime helper recreates a fluent datasource when its configured `base_directory` differs from the runtime `SOURCE_FOLDER` (this guards against container-vs-local path mismatches).
 
 If you want to run tests and also exercise the real GE integration, install `great_expectations[azure]` in your virtualenv before running tests.
 

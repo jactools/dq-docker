@@ -61,16 +61,21 @@ Production builds and embedding Data Docs
      `uncommitted/data_docs/local_site/ds_sample_data`). Customize the
      generation command to your project (see `.github/workflows/build-with-data-docs.example.yml`).
 
-  2. Build production images:
+    2. Build production images:
 
      ```bash
      ./buildit.sh --prod
      ```
 
-     `buildit.sh --prod` will build the package image via
-     `docker-compose.prod.yml` and will attempt to build the `nginx`
-     image from `docker/nginx/Dockerfile.prod` if the generated site
-     exists at `uncommitted/data_docs/local_site`.
+      `buildit.sh --prod` will build the package image via
+      `docker-compose.prod.yml` and will attempt to build the `nginx`
+      image from `docker/nginx/Dockerfile.prod` if the generated site
+      exists at `uncommitted/data_docs/local_site`.
+
+      Note: `buildit.sh --prod` requires `DQ_DATA_SOURCE` to be set. This
+      script fails early with a helpful message if the variable is
+      missing so CI and deploys do not proceed against an unintended
+      default source.
 
   3. Run production compose (ensure `DQ_DATA_SOURCE` is set):
 

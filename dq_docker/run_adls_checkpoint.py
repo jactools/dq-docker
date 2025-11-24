@@ -10,20 +10,23 @@ from .expectation_suite import add_suite_to_context
 from .validation_definition import create_or_get_validation_definition
 from .checkpoint import create_and_run_checkpoint
 
-from .config.adls_config import (
-    PROJECT_ROOT,
-    DATA_DOCS_SITE_NAME,
-    DATA_DOCS_CONFIG,
-    SOURCE_FOLDER,
-    DATA_SOURCE_NAME,
-    ASSET_NAME,
-    BATCH_DEFINITION_NAME,
-    BATCH_DEFINITION_PATH,
-    EXPECTATION_SUITE_NAME,
-    DEFINITION_NAME,
-    RESULT_FORMAT,
-    DATA_DOCS_SITE_NAMES,
-)
+from .config import gx_config as cfg
+
+# Expose module-level names for backwards compatibility with tests and
+# external callers. These will be refreshed inside `main()` after
+# `cfg.validate_runtime()` is called in runtime scenarios.
+PROJECT_ROOT = cfg.PROJECT_ROOT
+DATA_DOCS_SITE_NAME = cfg.DATA_DOCS_SITE_NAME
+DATA_DOCS_CONFIG = cfg.DATA_DOCS_CONFIG
+SOURCE_FOLDER = cfg.SOURCE_FOLDER
+DATA_SOURCE_NAME = cfg.DATA_SOURCE_NAME
+ASSET_NAME = cfg.ASSET_NAME
+BATCH_DEFINITION_NAME = cfg.BATCH_DEFINITION_NAME
+BATCH_DEFINITION_PATH = cfg.BATCH_DEFINITION_PATH
+EXPECTATION_SUITE_NAME = cfg.EXPECTATION_SUITE_NAME
+DEFINITION_NAME = cfg.DEFINITION_NAME
+RESULT_FORMAT = cfg.RESULT_FORMAT
+DATA_DOCS_SITE_NAMES = cfg.DATA_DOCS_SITE_NAMES
 
 configure_logging()
 logger = get_logger(__name__)
@@ -67,14 +70,21 @@ def main():
     batch_definition = ensure_batch_definition(file_customers, BATCH_DEFINITION_NAME, BATCH_DEFINITION_PATH)
     batch = get_batch_and_preview(batch_definition)
 
-    # build suite from contract
-    contract_file = Path(PROJECT_ROOT) / "contracts" / f"{Path(BATCH_DEFINITION_NAME).stem}.contract.json"
-    try:
-        suite = build_expectation_suite(EXPECTATION_SUITE_NAME, contract_path=str(contract_file))
-    except ValueError as exc:
-        logger.error("ERROR: expectation contract required but missing or invalid: %s", exc)
-        logger.error("Expected contract path: %s", contract_file)
-        return
+    # build suite from contract (skip if no batch-definition configured)
+    suite = None
+    if BATCH_DEFINITION_NAME:
+        contract_file = Path(PROJECT_ROOT) / "contracts" / f"{Path(BATCH_DEFINITION_NAME).stem}.contract.json"
+        try:
+            suite = build_expectation_suite(EXPECTATION_SUITE_NAME, contract_path=str(contract_file))
+        except ValueError as exc:
+            logger.error("ERROR: expectation contract required but missing or invalid: %s", exc)
+            logger.error("Expected contract path: %s", contract_file)
+            return
+    else:
+        # No batch definition configured; create an empty suite placeholder
+        from types import SimpleNamespace
+
+        suite = SimpleNamespace()
 
     add_suite_to_context(context, suite, EXPECTATION_SUITE_NAME)
     if batch is not None:
@@ -113,5 +123,22 @@ def main():
 
 
 if __name__ == "__main__":
+    # Enforce runtime configuration when invoked as a script/module
+    cfg.validate_runtime()
+
+    # Refresh module-level names from config after validation
+    PROJECT_ROOT = cfg.PROJECT_ROOT
+    DATA_DOCS_SITE_NAME = cfg.DATA_DOCS_SITE_NAME
+    DATA_DOCS_CONFIG = cfg.DATA_DOCS_CONFIG
+    SOURCE_FOLDER = cfg.SOURCE_FOLDER
+    DATA_SOURCE_NAME = cfg.DATA_SOURCE_NAME
+    ASSET_NAME = cfg.ASSET_NAME
+    BATCH_DEFINITION_NAME = cfg.BATCH_DEFINITION_NAME
+    BATCH_DEFINITION_PATH = cfg.BATCH_DEFINITION_PATH
+    EXPECTATION_SUITE_NAME = cfg.EXPECTATION_SUITE_NAME
+    DEFINITION_NAME = cfg.DEFINITION_NAME
+    RESULT_FORMAT = cfg.RESULT_FORMAT
+    DATA_DOCS_SITE_NAMES = cfg.DATA_DOCS_SITE_NAMES
+
     main()
 

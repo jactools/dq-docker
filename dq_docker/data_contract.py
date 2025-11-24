@@ -96,6 +96,26 @@ def contract_to_suite(contract_path: str | Path):
         parts = type_str.split("_")
         return "".join(p.title() for p in parts)
 
+    def _to_snake_name(type_str: str | None) -> str | None:
+        """Convert CamelCase / PascalCase expectation names to snake_case.
+
+        GE's registry uses snake_case expectation_type names (e.g.
+        `expect_column_values_to_not_be_null`). Contracts may contain
+        legacy PascalCase names (e.g. `ExpectColumnValuesToNotBeNull`).
+        Normalize those to snake_case before passing to GE constructors.
+        """
+        if not type_str:
+            return None
+        s = type_str
+        # If it already looks like snake_case, return as-is
+        if "_" in s or s.lower() == s:
+            return s
+        import re
+
+        s1 = re.sub('(.)([A-Z][a-z]+)', r"\1_\2", s)
+        s2 = re.sub('([a-z0-9])([A-Z])', r"\1_\2", s1)
+        return s2.replace("-", "_").lower()
+
     # Helper: build an ExpectationConfiguration-like object from a dict.
     def _make_expectation_config(expectation_dict):
         """Try several import paths for GE's ExpectationConfiguration.
@@ -199,8 +219,11 @@ def contract_to_suite(contract_path: str | Path):
             "meta": meta,
         }
         # Explicit expectations from the contract: map `expectation_type` -> `type`
-        # to match GE's constructor signature.
-        cfg = {"type": (etype or None), "kwargs": kwargs, "meta": meta}
+        # to match GE's constructor signature. Normalize legacy PascalCase
+        # expectation names to GE snake_case names so GE can find the
+        # registered implementation.
+        normalized = _to_snake_name(etype)
+        cfg = {"type": (normalized or None), "kwargs": kwargs, "meta": meta}
         expectation_configs.append(cfg)
         legacy_expectation_configs.append({"expectation_type": (etype or None), "kwargs": kwargs, "meta": meta})
 
