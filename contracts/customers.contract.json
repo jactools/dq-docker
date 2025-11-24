@@ -1,6 +1,6 @@
 {
   "contract_version": "1.0",
-  "name": "customers_2019",
+  "name": "customers",
   "description": "Open Data Contract for sample customers_2019.csv: basic null, range and email-format expectations.",
   "issued_at": "2025-11-20T00:00:00Z",
   "issuer": "jactools",

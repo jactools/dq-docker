@@ -7,8 +7,8 @@ from dq_docker.odcs_validator import validate_contract
 
 
 def test_validate_existing_contract():
-    data = validate_contract(Path("contracts") / "customers_2019.contract.json")
-    assert data["name"] == "customers_2019"
+    data = validate_contract(Path("contracts") / "customers.contract.json")
+    assert data["name"] == "customers"
 
 
 def test_invalid_json(tmp_path):

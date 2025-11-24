@@ -2,11 +2,10 @@
 -r requirements.txt
 pytest>=7.0
 pyyaml>=6.0
-# Development requirements
-pytest
+
+# Optional developer tools (linting/formatting)
 toml
 black
 isort
 flake8
 pre-commit
-pyyaml

@@ -17,6 +17,6 @@
   "name": "adls_checkpoint",
   "suite": {
     "id": "6635ee91-70f8-4cf1-8db5-dcb83f863c6f",
-    "name": "customers_2019"
+    "name": "customers"
   }
 }

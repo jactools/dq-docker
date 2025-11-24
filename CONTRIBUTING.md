@@ -4,10 +4,13 @@ Quick notes for developers working on this repository.
 
 Running tests locally
 
-- The runtime requires a data source mapping to be selected via the
-  `DQ_DATA_SOURCE` environment variable. There are per-source YAML files
-  under `dq_docker/config/data_sources/` (for example
-  `ds_sample_data.yml`).
+- The runtime supports two modes for test and local runs:
+
+  - Targeted mode: set `DQ_DATA_SOURCE` to validate a single data source
+    (for example `export DQ_DATA_SOURCE=ds_sample_data`).
+  - Full validation mode: leave `DQ_DATA_SOURCE` unset and the runtime
+    will iterate and validate all configured data sources in
+    `dq_docker/config/data_sources.yml`.
 
 - Install dev dependencies (recommended inside a venv):
 
@@ -25,12 +28,25 @@ export DQ_DATA_SOURCE=ds_sample_data
 PYTHONPATH=. pytest
 ```
 
-Why `DQ_DATA_SOURCE` is required
+Data-source selection
 
-- The package intentionally fails fast when a data source is not
-  configured to avoid silent default behavior. Set `DQ_DATA_SOURCE` to
-  one of the filenames (without extension) in
-  `dq_docker/config/data_sources/`.
+- Historically the runtime required `DQ_DATA_SOURCE` to be set to avoid
+  silent default behavior. The runtime now defaults to validating all
+  configured sources when `DQ_DATA_SOURCE` is unset. For targeted
+  runs set `DQ_DATA_SOURCE` to the desired source key.
+
+  - To run tests against a single source:
+
+    ```bash
+    export DQ_DATA_SOURCE=ds_sample_data
+    PYTHONPATH=. pytest
+    ```
+
+  - To run the test suite and validate all configured sources:
+
+    ```bash
+    PYTHONPATH=. pytest
+    ```
 
 If you add new data sources
 
@@ -38,6 +54,16 @@ If you add new data sources
   `ds_your_source.yml` containing the required mapping keys:
   `source_folder`, `asset_name`, `batch_definition_name`,
   `batch_definition_path`, `expectation_suite_name`, `definition_name`.
+
+- Naming recommendations:
+
+  - Use canonical expectation and contract names (no trailing year
+    suffix) for `expectation_suite_name` and contract filenames. For
+    example use `customers` / `contracts/customers.contract.json` and
+    let the batch file names carry year-specific suffixes (for
+    example `customers_2019.csv`, `customers_2020.csv`). The runtime
+    will derive the canonical contract name by stripping a trailing
+    `_YYYY` from the batch stem.
 
 - Add any necessary CI updates if the new data source requires extra
   provisioning.

@@ -75,10 +75,10 @@
   ],
   "id": "6635ee91-70f8-4cf1-8db5-dcb83f863c6f",
   "meta": {
-    "contract_source": "/usr/src/app/contracts/customers_2019.contract.json",
+    "contract_source": "/usr/src/app/contracts/customers.contract.json",
     "contract_version": "1.0",
     "great_expectations_version": "1.9.0"
   },
-  "name": "customers_2019",
+  "name": "customers",
   "notes": null
 }
