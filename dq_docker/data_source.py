@@ -79,6 +79,34 @@ def find_datasource(ctx: Any, name: str) -> Optional[Any]:
 def ensure_pandas_filesystem(ctx: Any, name: str, base_directory: str) -> Any:
     ds = find_datasource(ctx, name)
     if ds:
+        # If an existing datasource points at a different base_directory
+        # (for example when great_expectations.yml contains container paths),
+        # recreate it so the runtime uses the provided `base_directory`.
+        try:
+            existing_base = getattr(ds, "base_directory", None)
+        except Exception:
+            existing_base = None
+        if existing_base:
+            try:
+                # Normalize paths for comparison
+                import os as _os
+
+                if _os.path.abspath(str(existing_base)) != _os.path.abspath(str(base_directory)):
+                    logger.info("Data source '%s' exists but base_directory differs; recreating with %s", name, base_directory)
+                    try:
+                        # Attempt to delete and recreate via the DataSourceManager
+                        if hasattr(ctx, "data_sources") and callable(getattr(ctx.data_sources, "delete", None)):
+                            try:
+                                ctx.data_sources.delete(name)
+                            except Exception:
+                                pass
+                            return ctx.data_sources.add_pandas_filesystem(name=name, base_directory=base_directory)
+                    except Exception:
+                        # Fallthrough to returning the existing datasource
+                        pass
+            except Exception:
+                # If anything goes wrong inspecting the existing datasource, ignore
+                pass
         logger.info("✅ Data source '%s' already exists.", name)
         return ds
 

@@ -32,6 +32,27 @@ if [[ $PROD -eq 1 ]]; then
 	# Build the package image using the repo Dockerfile and the prod compose file
 	docker compose -f docker-compose.prod.yml build --pull --no-cache dq_docker || true
 
+	# Validate required env var for prod: DQ_DATA_SOURCE must be set
+	if [[ -z "${DQ_DATA_SOURCE:-}" ]]; then
+		cat <<'MSG' >&2
+ERROR: Required environment variable missing: DQ_DATA_SOURCE
+
+Building production images that embed Data Docs requires selecting a
+data source so the site can be generated and embedded correctly. Set
+`DQ_DATA_SOURCE` to one of the keys defined in
+`dq_docker/config/data_sources/` (for example: `ds_sample_data`).
+
+Examples:
+  export DQ_DATA_SOURCE=ds_sample_data
+  ./buildit.sh --prod
+
+If you are building in CI, ensure the pipeline sets `DQ_DATA_SOURCE`
+and generates Data Docs into `uncommitted/data_docs/local_site` before
+running `./buildit.sh --prod`.
+MSG
+		exit 2
+	fi
+
 	# Build nginx image that embeds generated Data Docs (expects site at uncommitted/data_docs/local_site)
 	if [[ -d "uncommitted/data_docs/local_site" ]]; then
 		docker build -t jactools/dq-docker-nginx:latest -f docker/nginx/Dockerfile.prod .

@@ -19,7 +19,7 @@ flowchart LR
   data_docs["data_docs"]
   context_mod["context"]
   logs["logs"]
-  config_adls["config.adls_config"]
+  config_gx["config.gx_config"]
   version_cli["version_info_cli"]
   pkg_init["__init__"]
   version_mod["_version"]
@@ -31,7 +31,7 @@ flowchart LR
   run -->|uses| suite
   run -->|uses| validation
   run -->|uses| checkpoint
-  run -->|reads config| config_adls
+  run -->|reads config| config_gx
   run -->|initializes| data_docs
   run -->|gets context| context_mod
   run -->|logging| logs
@@ -51,7 +51,7 @@ flowchart LR
   version_cli -->|logging| logs
 
   %% package metadata
-  pkg_init -->|imports| config_adls
+  pkg_init -->|imports| config_gx
   pkg_init -->|reads| version_mod
   version_cli -->|reads| version_mod
 

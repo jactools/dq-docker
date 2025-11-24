@@ -20,13 +20,13 @@ def test_data_sources_mapping_keys():
         assert required.issubset(set(cfg.keys()))
 
 
-def test_adls_config_derives_from_selected(monkeypatch):
-    # Ensure adls_config picks up values based on DQ_DATA_SOURCE.
+def test_gx_config_derives_from_selected(monkeypatch):
+    # Ensure gx_config picks up values based on DQ_DATA_SOURCE.
     # We require the variable be set (no implicit defaults), so set it here.
     monkeypatch.setenv("DQ_DATA_SOURCE", "ds_sample_data")
     import importlib
 
-    cfg = importlib.import_module("dq_docker.config.adls_config")
+    cfg = importlib.import_module("dq_docker.config.gx_config")
     importlib.reload(cfg)
     assert cfg.DATA_SOURCE_NAME == "ds_sample_data"
     assert cfg.ASSET_NAME is not None

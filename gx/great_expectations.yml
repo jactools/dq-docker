@@ -83,17 +83,18 @@ data_docs_sites:
 fluent_datasources:
   ds_sample_data:
     type: pandas_filesystem
-    id: 9df8c3ef-d72b-48a5-9388-304ee431862c
+    id: 1aba3cbb-11a3-4e94-84c4-4565287b0012
     assets:
       sample_customers:
         type: csv
-        id: 36d5bfbc-b431-4c08-871c-aed133754e90
+        id: 1920c048-4508-43dc-b061-40e12e5fe16b
         batch_definitions:
           customers_2019.csv:
-            id: 908d5c3b-fdc8-4d2d-91cb-23c83113ef7f
+            id: e1c068b3-331f-42fd-872d-0e5c12585c8b
             partitioner:
               regex: customers_2019.csv$
               param_names: []
-    base_directory: /usr/src/app/dq_great_expectations/sample_data/customers
+    base_directory: 
+      /Users/jacbeekers/gitrepos/dq_docker/dq_great_expectations/sample_data/customers
 analytics_enabled:
 data_context_id: 0dabaf07-3397-4169-8517-af9fc23f068c
