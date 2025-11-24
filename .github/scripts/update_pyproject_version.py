@@ -13,9 +13,11 @@ from pathlib import Path
 import sys
 
 import logging
-from dq_docker.logs import configure_logging
 
-configure_logging()
+# Avoid importing `dq_docker` (and thereby `dq_docker.config`) at module
+# import time because CI runs this script before environment variables like
+# `DQ_DATA_SOURCE` are set. Use a minimal local logging configuration instead.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 try:
     import toml
 except Exception:
