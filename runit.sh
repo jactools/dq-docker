@@ -45,47 +45,42 @@ fi
 
 REPO_DIR="$(pwd)"
 
-# If a .env file exists, pass it into the container; otherwise warn.
-ENV_ARG=()
-if [[ -f .env ]]; then
-  ENV_ARG=(--env-file .env)
-else
-  echo "Warning: .env not found in ${REPO_DIR}; continuing without --env-file."
+# If a .env file exists, docker-compose will automatically load it when
+# using the `env_file` directive in `docker-compose.yml`. We still warn
+# if it's missing so developers know to create one.
+if [[ ! -f .env ]]; then
+  echo "Warning: .env not found in ${REPO_DIR}; create one from .env.example or set environment variables manually."
 fi
 
-# Ensure the data_docs folder for gx is present (nginx compose mounts gx/uncommitted/data_docs/local_site)
-mkdir -p "${REPO_DIR}/gx/uncommitted/data_docs/local_site"
+echo "Starting runtime via docker compose (service: dq_docker)..."
 
-echo "Running runtime container (image: great-expectations-adls-spn)..."
-docker run -it --rm \
-  "${ENV_ARG[@]}" \
-  --volume "${REPO_DIR}:/usr/src/app" \
-  --volume "${REPO_DIR}/gx/uncommitted/data_docs:/usr/src/app/gx/uncommitted/data_docs" \
-  --volume "${REPO_DIR}/dq_great_expectations/uncommitted/data_docs:/usr/src/app/dq_great_expectations/uncommitted/data_docs" \
-  --workdir /usr/src/app \
-  great-expectations-adls-spn \
-  python -m dq_docker.run_adls_checkpoint
+# Bring up the service. We run the container, attach to its logs, and remove
+# orphan containers when finished. The compose file mounts the repo for
+# development purposes.
+docker compose up --build --remove-orphans dq_docker
 
 echo "Runtime finished."
 
-# Allow environment override or CLI flag to start nginx to serve Data Docs.
-if [[ $SERVE_DOCS -eq 0 && "${DQ_SERVE_DATADOCS-}" == "1" ]]; then
-  SERVE_DOCS=1
-fi
-
+# Optionally start the nginx service to serve Data Docs if requested.
 if [[ $SERVE_DOCS -eq 1 ]]; then
   if ! command -v docker >/dev/null 2>&1; then
     echo "docker not found; cannot start datadocs nginx service."
     exit 0
   fi
 
-  echo "Starting nginx to serve Data Docs (docker compose -f docker/docker-compose.yml up -d)..."
-  if docker compose -f docker/docker-compose.yml up -d; then
-    echo "nginx started and serving Data Docs on http://localhost:8080 (if available)"
+  echo "Starting nginx to serve Data Docs via docker compose..."
+  # Start the nginx service if it's defined in the compose file; otherwise
+  # warn and skip.
+  if docker compose config --services | grep -q '^nginx$'; then
+    if docker compose up -d nginx; then
+      echo "nginx started and serving Data Docs on http://localhost:8080 (if available)"
+    else
+      echo "Failed to start nginx via docker compose. Ensure docker compose is available and try:"
+      echo "  docker compose up -d nginx"
+      exit 1
+    fi
   else
-    echo "Failed to start nginx via docker compose. Ensure docker compose is available and try:"
-    echo "  docker compose -f docker/docker-compose.yml up -d"
-    exit 1
+    echo "No 'nginx' service defined in docker-compose.yml; skipping Data Docs nginx start."
   fi
 fi
 
