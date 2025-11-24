@@ -11,13 +11,9 @@ from typing import Dict
 _computed_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PROJECT_ROOT = os.environ.get("DQ_PROJECT_ROOT", _computed_root)
 
-# Load per-data-source configuration from a separate module. This allows
-# multiple data sources to be defined and selected via environment at
-# runtime (or in tests) without editing this file.
-try:
-    from .data_sources import DATA_SOURCES  # type: ignore
-except Exception:  # pragma: no cover - defensive import
-    DATA_SOURCES: Dict[str, Dict[str, str]] = {}
+# Load per-data-source configuration from the top-level module which is the
+# single source of truth for data source mappings.
+from dq_docker.data_sources import DATA_SOURCES  # type: ignore
 
 # Data Docs
 DATA_DOCS_SITE_NAME = "local_site"
@@ -33,9 +29,13 @@ DATA_DOCS_CONFIG = {
 
 # Data source selection. The selected key should exist in `DATA_SOURCES`.
 # It can be overridden at runtime via the `DQ_DATA_SOURCE` environment variable.
-DATA_SOURCE_NAME = os.environ.get("DQ_DATA_SOURCE", "ds_sample_data")
+DATA_SOURCE_NAME = os.environ.get("DQ_DATA_SOURCE")
 
-# Default empty values; will be populated from DATA_SOURCES when available.
+# No defaults: require the environment variable and the mapping to exist.
+if not DATA_SOURCE_NAME:
+    raise RuntimeError("DQ_DATA_SOURCE environment variable must be set and point to a known data source")
+
+# Default empty values; will be populated from DATA_SOURCES.
 SOURCE_FOLDER = None
 ASSET_NAME = None
 BATCH_DEFINITION_NAME = None
@@ -46,7 +46,10 @@ DEFINITION_NAME = None
 # Populate values from `DATA_SOURCES` mapping when possible. If the mapping
 # is missing or the specific data source isn't present, fall back to the
 # legacy defaults so existing deployments keep working.
-_ds = DATA_SOURCES.get(DATA_SOURCE_NAME, {})
+_ds = DATA_SOURCES.get(DATA_SOURCE_NAME)
+if _ds is None:
+    raise RuntimeError(f"Data source '{DATA_SOURCE_NAME}' not found in DATA_SOURCES mapping")
+
 if _ds:
     # If source_folder was provided as a relative path, join it to PROJECT_ROOT.
     _sf = _ds.get("source_folder")
