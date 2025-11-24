@@ -1,94 +1,5 @@
 # dq_docker
 
-Lightweight project to run data-quality checks with Great Expectations inside Docker.
-
-# dq_docker
-
-Lightweight project to run data-quality checks with Great Expectations inside Docker.
-
-Overview
-- Project package: `dq_docker` — contains the runtime entrypoint and namespaced configuration at `dq_docker.config`.
-- Local Great Expectations assets (expectations, checkpoints, sample data) live in `dq_great_expectations/` to avoid shadowing the upstream `great_expectations` package.
-
-Quick start
-1. Build (Docker):
-
-  # dq_docker
-
-  Lightweight toolkit for running data-quality checks with Great Expectations inside Docker.
-
-  Overview
-  - Package: `dq_docker` — runtime entrypoint, configuration (`dq_docker.config`), logging helpers, and utilities.
-  - Local GE project: `dq_great_expectations/` contains expectations, checkpoints, and sample data used by the runtime.
-  - Contracts: Expectation suites are driven from JSON Open Data Contracts (ODCS) placed under `contracts/`.
-
-  Quick start (local)
-  1. Build the container (optional):
-
-     ```bash
-     ./buildit.sh
-     ```
-
-  2. Run the runtime locally (recommended for development):
-
-     ```bash
-     # from project root
-     python -m dq_docker.run_adls_checkpoint
-     ```
-
-  3. Run in the container using the included helper:
-
-     ```bash
-     ./runit.sh
-     ```
-
-  Running alternative commands
-  - The container and runtime support selecting the module to run via the `DQ_CMD` environment variable (default: `dq_docker.run_adls_checkpoint`).
-  - Override the project root (useful when mounting into the container) with `DQ_PROJECT_ROOT`.
-
-  Example (Docker):
-
-  ```bash
-  # run the default runtime module and point to a mounted project root
-  docker run --rm -e DQ_CMD=dq_docker.run_adls_checkpoint -e DQ_PROJECT_ROOT=/usr/src/app -v "$PWD":/usr/src/app <image>
-  ```
-
-  Contracts / Expectations
-  - Expectation suites are created from ODCS-style JSON contracts located in `contracts/` (e.g. `contracts/customers_2019.contract.json`).
-  - The runtime computes the contract path for the batch name and requires a valid contract when building the suite. See `dq_docker/data_contract.py` and `dq_docker/odcs_validator.py` for the conversion and validation logic.
-
-  Logging
-  - The project uses a centralized logging helper `dq_docker.logs.configure_logging()` and `dq_docker.logs.get_logger()` to ensure logs go to stdout (suitable for containers and CI).
-
-  Testing
-  - Tests run without installing Great Expectations; tests monkeypatch a fake `great_expectations` module where needed.
-
-  Run the full test suite:
-
-  ```bash
-  PYTHONPATH=. pytest -q
-  ```
-
-   New test coverage
-   - Added a unit test that verifies `contract_to_suite` produces proper
-      `ExpectationConfiguration` objects when GE is available:
-      `tests/test_contract_to_suite_expectation_config.py`.
-   - Tests are written to skip when Great Expectations is not installed so
-      local development and CI runs without GE remain fast and isolated.
-
-  CI / Versioning
-  - `pyproject.toml` is the single source of truth for the package version; see `dq_docker/_version.py` for the runtime reader.
-  - The repo includes a helper script and workflow to increment the patch version in CI (`.github/scripts/update_pyproject_version.py` and the associated workflow).
-
-  Developer notes
-  - `dq_docker/run_adls_checkpoint.py` lazily imports Great Expectations inside `main()` so unit tests can inject a fake `great_expectations` module before import.
-   - The runtime will attempt to reuse existing datasources and CSV assets (idempotent asset creation), and will only add a `pandas_filesystem` datasource if the configured name is not already present.
-   - Batch definitions are also detected and reused when present; the runtime will only call `add_batch_definition_path` when a matching batch definition (by name or path) is not already available on the asset. This makes repeated runs safe in CI and containerized pipelines.
-   - `dq_docker/data_contract.py` now converts expectation dictionaries into Great Expectations' `ExpectationConfiguration` objects before adding them to a suite when GE is available. This prevents AttributeError issues when calling `suite.add_expectation` across different GE versions.
-
-  Contact
-# dq_docker
-
 Lightweight toolkit for running data-quality checks with Great Expectations inside Docker.
 
 ## Overview
@@ -115,46 +26,65 @@ python -m dq_docker.run_adls_checkpoint
 docker run --rm -e DQ_CMD=dq_docker.run_adls_checkpoint -e DQ_PROJECT_ROOT=/usr/src/app -v "$PWD":/usr/src/app <image>
 ```
 
+### Environment variables
+
+- `DQ_CMD`: module path to run inside container (default `dq_docker.run_adls_checkpoint`)
+- `DQ_PROJECT_ROOT`: path inside container that contains the project root (used by the runtime to locate `gx/`, `contracts/`, etc.)
+
+## Contracts / Expectations
+
+- Expectation suites are built from ODCS JSON contract files located in `contracts/`.
+- The runtime maps the batch definition name to a contract filename; see `dq_docker/data_contract.py` and `dq_docker/odcs_validator.py` for contract validation and conversion details.
+
 ## Testing
 
-- Tests are designed to run without installing Great Expectations; many tests monkeypatch a fake `great_expectations` module when needed.
-- Run the full test suite locally:
+- Unit tests are written with `pytest` and designed to run without a real Great Expectations install by monkeypatching `great_expectations` where needed.
+- Run the full test suite:
 
 ```bash
 PYTHONPATH=. pytest -q
 ```
 
+If you want to run tests and also exercise the real GE integration, install `great_expectations[azure]` in your virtualenv before running tests.
+
 ## Developer notes
 
-- Lazy GE imports: runtime functions that interact with Great Expectations import GE lazily at function-runtime. This allows the test suite to inject a fake `great_expectations` module before those imports.
-- Module-level helpers: several helper functions (e.g., `get_context`, `ensure_data_docs_site`, `get_batch_and_preview`) are imported at module level in `dq_docker/run_adls_checkpoint.py` so unit tests can monkeypatch them easily.
-- Idempotent runtime: the runtime attempts to reuse existing datasources, assets, batch definitions, and validation/checkpoint objects rather than creating duplicates. This makes repeated runs safe in CI and containers.
+- Lazy GE imports: functions that interact with Great Expectations import GE at runtime (inside functions). This makes unit tests that provide fake GE implementations possible without requiring GE at import time.
+- Module-level helpers: `dq_docker/run_adls_checkpoint.py` imports several helpers at module level (e.g., `get_context`, `ensure_data_docs_site`, `get_batch_and_preview`) so unit tests can monkeypatch them.
+- Idempotency: runtime helpers attempt to find existing datasources, assets, batch definitions, and validation/checkpoints and reuse them instead of creating duplicates — this makes repeated runs safe.
 - Contract-driven suites: expectation suites are built from ODCS contracts via `dq_docker/data_contract.py`. The code constructs `ExpectationConfiguration` objects when GE is available to maintain compatibility across GE versions.
 
 ## CI & Versioning
 
-- `pyproject.toml` is the single source of truth for the package version. See `dq_docker/_version.py` for the reader used at runtime.
-- The repo includes a helper script and workflow to bump the patch version in CI: `.github/scripts/update_pyproject_version.py` and `.github/workflows/*`.
+- `pyproject.toml` is the canonical source of the package version.
+- CI includes `.github/scripts/update_pyproject_version.py` and workflows to increment the patch version and run tests. The PR workflow installs `toml` so the version script can run.
 
 ## Serving Data Docs (nginx)
 
-1. Run the runtime to generate/update Data Docs.
-
-```bash
-python -m dq_docker.run_adls_checkpoint
-```
-
-2. Start the included nginx container (from project root):
+After running the runtime, Data Docs are updated under the local GE project (`gx/uncommitted/data_docs/...`). To host them with nginx (included):
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
 # then browse http://localhost:8080
 ```
 
-Notes
+Adjust the mount path in `docker/docker-compose.yml` if your data docs live in a different location.
 
-- If Data Docs are placed in a non-standard location, update `docker/docker-compose.yml` accordingly.
-- See `RELEASE_NOTES.md` for recent changes.
+## Release notes
+
+- See `RELEASE_NOTES.md` for recent changes. The repository uses annotated tags (e.g. `v0.2.2`) to mark releases.
+
+## Troubleshooting
+
+- If tests warn about an imported `great_expectations` raising `ImportError` (pytest deprecation warning), either install a compatible GE package locally or adjust the test that calls `pytest.importorskip` to handle `ImportError` explicitly.
+
+## Contributing
+
+- Fork the repo, implement changes on a feature branch, add tests, and open a PR. Run the test suite locally before opening the PR.
+
+## License
+
+- CC0-1.0 (see repository license file)
 
 ## Contact
 
