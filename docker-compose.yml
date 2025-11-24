@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  dq_docker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    # Mount the project into the container for convenient development.
+    # Remove the `volumes` entry in production if you prefer the wheel-built image.
+    volumes:
+      - ./:/usr/src/app:delegated
+    environment:
+      # Default command to run inside the container; can be overridden
+      - DQ_CMD=dq_docker.run_adls_checkpoint
+    entrypoint: /usr/local/bin/docker-entrypoint.sh
+    command: sh -c "python -m ${DQ_CMD}"
