@@ -1,6 +1,18 @@
 ```markdown
 # Release Notes
 
+## 0.2.2 - 2025-11-24
+
+- **Patch:** bump to `0.2.2`.
+- **Testing & Developer ergonomics:** moved several helper imports in `dq_docker/run_adls_checkpoint.py` to module level to make unit tests easier to monkeypatch (notably `get_context`, `ensure_data_docs_site`, `get_data_docs_urls`, and `get_batch_and_preview`). Added a defensive guard around `context.list_data_docs_sites()` so fake contexts used in tests won't raise.
+- **Docs:** updated `README.md` with clearer quickstart, testing, and developer notes.
+
+### Notes
+
+- These changes are internal and improve testability and developer experience. Runtime lazy-imports of Great Expectations (used to allow tests to run without GE installed) remain in place.
+
+---
+
 ## 0.2.1 - 2025-11-20
 
 - **Patch:** bump to `0.2.1`.

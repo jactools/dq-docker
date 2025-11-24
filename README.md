@@ -87,30 +87,75 @@ Quick start
    - `dq_docker/data_contract.py` now converts expectation dictionaries into Great Expectations' `ExpectationConfiguration` objects before adding them to a suite when GE is available. This prevents AttributeError issues when calling `suite.add_expectation` across different GE versions.
 
   Contact
-  - Repository owner: `jactools`
+# dq_docker
 
-  ---
+Lightweight toolkit for running data-quality checks with Great Expectations inside Docker.
 
-  Serve Data Docs via nginx
+## Overview
 
-  If you generate Great Expectations Data Docs locally (the runtime updates Data Docs under the project's GE folder), you can host them with a lightweight nginx container included in `docker/`.
+- Package: `dq_docker` — runtime entrypoint, configuration (`dq_docker.config`), logging helpers, and utilities.
+- Local GE project: `gx/` (or `dq_great_expectations/`) contains expectations, checkpoints, and sample data used by the runtime.
+- Contracts: Expectation suites are produced from JSON Open Data Contracts (ODCS) placed under `contracts/`.
 
-  1. Generate Data Docs (example):
+## Quickstart (local)
 
-  ```bash
-  # run the runtime which will update Data Docs in the project
-  python -m dq_docker.run_adls_checkpoint
-  ```
+1. Run the runtime locally (recommended for development):
 
-  2. Start the nginx container (from project root):
+```bash
+# from project root
+python -m dq_docker.run_adls_checkpoint
+```
 
-  ```bash
-  docker compose -f docker/docker-compose.yml up -d
-  # then browse http://localhost:8080
-  ```
+2. Build and run in Docker (optional):
 
-  Notes:
-  - The compose file mounts `./gx/uncommitted/data_docs/local_site` into the nginx html root. If your Data Docs live elsewhere in the repo, update `docker/docker-compose.yml` accordingly.
-  - The nginx config is in `docker/nginx/nginx.conf` and can be adjusted for custom headers, TLS termination, or proxying.
+```bash
+./buildit.sh
+./runit.sh
+# or run directly with docker
+docker run --rm -e DQ_CMD=dq_docker.run_adls_checkpoint -e DQ_PROJECT_ROOT=/usr/src/app -v "$PWD":/usr/src/app <image>
+```
 
-  See `RELEASE_NOTES.md` for recent changes and upgrade notes.
+## Testing
+
+- Tests are designed to run without installing Great Expectations; many tests monkeypatch a fake `great_expectations` module when needed.
+- Run the full test suite locally:
+
+```bash
+PYTHONPATH=. pytest -q
+```
+
+## Developer notes
+
+- Lazy GE imports: runtime functions that interact with Great Expectations import GE lazily at function-runtime. This allows the test suite to inject a fake `great_expectations` module before those imports.
+- Module-level helpers: several helper functions (e.g., `get_context`, `ensure_data_docs_site`, `get_batch_and_preview`) are imported at module level in `dq_docker/run_adls_checkpoint.py` so unit tests can monkeypatch them easily.
+- Idempotent runtime: the runtime attempts to reuse existing datasources, assets, batch definitions, and validation/checkpoint objects rather than creating duplicates. This makes repeated runs safe in CI and containers.
+- Contract-driven suites: expectation suites are built from ODCS contracts via `dq_docker/data_contract.py`. The code constructs `ExpectationConfiguration` objects when GE is available to maintain compatibility across GE versions.
+
+## CI & Versioning
+
+- `pyproject.toml` is the single source of truth for the package version. See `dq_docker/_version.py` for the reader used at runtime.
+- The repo includes a helper script and workflow to bump the patch version in CI: `.github/scripts/update_pyproject_version.py` and `.github/workflows/*`.
+
+## Serving Data Docs (nginx)
+
+1. Run the runtime to generate/update Data Docs.
+
+```bash
+python -m dq_docker.run_adls_checkpoint
+```
+
+2. Start the included nginx container (from project root):
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+# then browse http://localhost:8080
+```
+
+Notes
+
+- If Data Docs are placed in a non-standard location, update `docker/docker-compose.yml` accordingly.
+- See `RELEASE_NOTES.md` for recent changes.
+
+## Contact
+
+- Repository owner: `jactools`
