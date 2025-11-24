@@ -1,37 +1,46 @@
-"""Data source specific configuration.
+"""Data source specific configuration loader.
 
-This module defines mappings for data sources. Each data source entry
-provides the values that other config consumers derive: source_folder,
-asset_name, batch definition names/paths, expectation suite and checkpoint
-definition name.
-
-Add additional data sources here and the runtime will pick the one
-selected by the `DQ_DATA_SOURCE` environment variable (defaults to
-`ds_sample_data`).
+This module loads `data_sources.yml` when PyYAML is available and falls
+back to an embedded mapping otherwise. Keeping YAML as the canonical
+mapping makes it easy for non-Python tooling to edit the data-source
+definitions.
 """
 import os
 from typing import Dict
 
-# Relative paths are relative to the project root. Consumers should join
-# them with `PROJECT_ROOT` from `adls_config.py`.
-DATA_SOURCES: Dict[str, Dict[str, str]] = {
-    "ds_sample_data": {
-        "source_folder": os.path.join("dq_great_expectations", "sample_data", "customers"),
-        "asset_name": "sample_customers",
-        "batch_definition_name": "customers_2019.csv",
-        "batch_definition_path": "customers_2019.csv",
-        "expectation_suite_name": "adls_data_quality_suite",
-        "definition_name": "adls_checkpoint",
-    },
-    # Example placeholder for another data source:
-    # "ds_other": {
-    #     "source_folder": os.path.join("dq_great_expectations", "other_data", "folder"),
-    #     "asset_name": "other_asset",
-    #     "batch_definition_name": "file.parquet",
-    #     "batch_definition_path": "file.parquet",
-    #     "expectation_suite_name": "other_suite",
-    #     "definition_name": "other_checkpoint",
-    # },
-}
+_here = os.path.dirname(__file__)
+_yaml_path = os.path.join(_here, "data_sources.yml")
+
+
+def _load_from_yaml(path: str) -> Dict[str, Dict[str, str]]:
+    try:
+        import yaml  # type: ignore
+    except Exception:
+        return {}
+
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+            return {k: dict(v or {}) for k, v in data.items()}
+    except Exception:
+        return {}
+
+
+# Load YAML when available; otherwise use an embedded fallback.
+DATA_SOURCES: Dict[str, Dict[str, str]] = {}
+if os.path.exists(_yaml_path):
+    DATA_SOURCES = _load_from_yaml(_yaml_path)
+
+if not DATA_SOURCES:
+    DATA_SOURCES = {
+        "ds_sample_data": {
+            "source_folder": os.path.join("dq_great_expectations", "sample_data", "customers"),
+            "asset_name": "sample_customers",
+            "batch_definition_name": "customers_2019.csv",
+            "batch_definition_path": "customers_2019.csv",
+            "expectation_suite_name": "adls_data_quality_suite",
+            "definition_name": "adls_checkpoint",
+        }
+    }
 
 __all__ = ["DATA_SOURCES"]
