@@ -1,0 +1,29 @@
+services:
+  dq_docker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jactools/dq-docker:latest
+    environment:
+      # Must be provided in the environment when deploying (no defaults).
+      - DQ_DATA_SOURCE=${DQ_DATA_SOURCE}
+    restart: unless-stopped
+
+  nginx:
+    # Use a dedicated nginx image that embeds Data Docs (built in CI).
+    image: jactools/dq-docker-nginx:latest
+    ports:
+      - "8080:80"
+    # Mount only the custom nginx config if you need to override it at deploy time.
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - dq_docker
+    restart: unless-stopped
+
+# Note:
+# - This production compose intentionally avoids bind-mounting source code.
+# - Build the image with `docker compose -f docker-compose.prod.yml build` and
+#   run with `docker compose -f docker-compose.prod.yml up -d`.
+# - Ensure `DQ_DATA_SOURCE` is set in the environment or an env-file passed to
+#   the compose run. The service will fail fast without a valid data source.

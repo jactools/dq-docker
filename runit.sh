@@ -1,29 +1,24 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run the runtime inside the container. This mounts the repository into
-# the container so the package (`dq_docker`) and local Great Expectations
-# project (`dq_great_expectations`) are available at runtime. It also
-# mounts the data_docs folder so Data Docs updates persist locally.
-#
-# Usage:
-#   ./runit.sh            # run the runtime container
-#   ./runit.sh --serve-docs   # run runtime then start nginx to serve Data Docs
-# Alternatively set environment variable `DQ_SERVE_DATADOCS=1` to auto-start nginx
-# after the runtime completes.
-
-# Requirements:
-# - an optional `.env` file in the repo root with necessary environment variables
-# - a Docker image named `great-expectations-adls-spn` (built separately)
+# Run the runtime container. Supports development (default) and production
+# (`--prod`) modes. In development the repo is bind-mounted into the
+# container via `docker-compose.yml`. In production the `docker-compose.prod.yml`
+# file is used and images are expected to be built (or will be built via
+# `buildit.sh --prod`).
 
 SHOW_HELP=0
 SERVE_DOCS=1
+PROD=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --serve-docs)
       SERVE_DOCS=1
+      shift
+      ;;
+    --prod)
+      PROD=1
       shift
       ;;
     -h|--help)
@@ -39,27 +34,47 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ $SHOW_HELP -eq 1 ]]; then
-  sed -n '1,120p' "$0"
+  sed -n '1,240p' "$0"
+  echo
+  echo "Usage: $0 [--prod] [--serve-docs]"
+  echo "  --prod       Use docker-compose.prod.yml (no repo bind-mounts)."
+  echo "  --serve-docs  Start nginx service to serve Data Docs after runtime."
   exit 0
 fi
 
 REPO_DIR="$(pwd)"
 
-# If a .env file exists, docker-compose will automatically load it when
-# using the `env_file` directive in `docker-compose.yml`. We still warn
-# if it's missing so developers know to create one.
 if [[ ! -f .env ]]; then
   echo "Warning: .env not found in ${REPO_DIR}; create one from .env.example or set environment variables manually."
 fi
 
-echo "Starting runtime via docker compose (service: dq_docker)..."
+if [[ $PROD -eq 1 ]]; then
+  COMPOSE_FILE="docker-compose.prod.yml"
+  echo "Running in PRODUCTION mode using ${COMPOSE_FILE}."
 
-# Bring up the service. We run the container, attach to its logs, and remove
-# orphan containers when finished. The compose file mounts the repo for
-# development purposes.
-docker compose up --build --remove-orphans dq_docker
+  # Validate required env var for prod: DQ_DATA_SOURCE must be set
+  if [[ -z "${DQ_DATA_SOURCE:-}" ]]; then
+    echo "ERROR: DQ_DATA_SOURCE must be set for production runs. Export it and re-run."
+    exit 2
+  fi
 
-echo "Runtime finished."
+  echo "Bringing up production services via ${COMPOSE_FILE}..."
+  docker compose -f ${COMPOSE_FILE} up -d --remove-orphans
+
+  echo "Services started. To view logs: docker compose -f ${COMPOSE_FILE} logs -f"
+
+  RUNTIME_COMPOSE_ARGS=( -f ${COMPOSE_FILE} )
+else
+  COMPOSE_FILE="docker-compose.yml"
+  echo "Running in development mode using ${COMPOSE_FILE} (bind-mounts enabled)."
+
+  echo "Starting runtime via docker compose (service: dq_docker)..."
+  docker compose up --build --remove-orphans dq_docker
+
+  echo "Runtime finished."
+
+  RUNTIME_COMPOSE_ARGS=( )
+fi
 
 # Optionally start the nginx service to serve Data Docs if requested.
 if [[ $SERVE_DOCS -eq 1 ]]; then
@@ -68,19 +83,18 @@ if [[ $SERVE_DOCS -eq 1 ]]; then
     exit 0
   fi
 
-  echo "Starting nginx to serve Data Docs via docker compose..."
-  # Start the nginx service if it's defined in the compose file; otherwise
-  # warn and skip.
-  if docker compose config --services | grep -q '^nginx$'; then
-    if docker compose up -d nginx; then
+  echo "Starting nginx to serve Data Docs via docker compose (${COMPOSE_FILE})..."
+  # Start the nginx service if it's defined in the selected compose file; otherwise warn and skip.
+  if docker compose ${RUNTIME_COMPOSE_ARGS[@]:-} config --services | grep -q '^nginx$'; then
+    if docker compose ${RUNTIME_COMPOSE_ARGS[@]:-} up -d nginx; then
       echo "nginx started and serving Data Docs on http://localhost:8080 (if available)"
     else
       echo "Failed to start nginx via docker compose. Ensure docker compose is available and try:"
-      echo "  docker compose up -d nginx"
+      echo "  docker compose -f ${COMPOSE_FILE} up -d nginx"
       exit 1
     fi
   else
-    echo "No 'nginx' service defined in docker-compose.yml; skipping Data Docs nginx start."
+    echo "No 'nginx' service defined in ${COMPOSE_FILE}; skipping Data Docs nginx start."
   fi
 fi
 

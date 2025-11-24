@@ -1,6 +1,20 @@
 ```markdown
 # Release Notes
 
+## 0.2.3 - 2025-11-24
+
+- **Patch:** bump to `0.2.3`.
+- **Production & packaging:** add `docker-compose.prod.yml` and an nginx production image (`docker/nginx/Dockerfile.prod`) to embed generated Great Expectations Data Docs into an nginx image for deployable static hosting. Added `docker/nginx/nginx.conf` to route requests to multiple Data Docs sites under `/usr/share/nginx/html/<site>/` and fall back to each site's `index.html`.
+- **Dev tooling:** added `buildit.sh --prod` and `runit.sh --prod` to build and run production images; these scripts validate `DQ_DATA_SOURCE` in prod mode and support starting the `nginx` Data Docs service.
+- **CI / Releasing:** added example workflows `.github/workflows/build-with-data-docs.example.yml` and `.github/workflows/ci-build-and-publish.example.yml` showing how to generate Data Docs, build the package image, build the nginx image with embedded Data Docs, and optionally push images to a registry.
+- **Docs:** updated `README.md` and `CONTRIBUTING.md` with production build/run instructions and CI guidance.
+
+### Notes
+
+- This patch focuses on packaging and deployment ergonomics: it provides a reproducible CI pattern to produce a single deployable nginx image containing Data Docs so runtime deployments do not depend on host mounts. The repository's existing testing, GE-compatibility and idempotency improvements remain unchanged.
+
+---
+
 ## 0.2.2 - 2025-11-24
 
 - **Patch:** bump to `0.2.2`.
@@ -10,10 +24,6 @@
 ### Notes
 
 - These changes are internal and improve testability and developer experience. Runtime lazy-imports of Great Expectations (used to allow tests to run without GE installed) remain in place.
-
----
-
-## 0.2.1 - 2025-11-20
 
 - **Patch:** bump to `0.2.1`.
 - **Idempotency:** runtime now avoids creating duplicate batch definitions and validation definitions by detecting and reusing existing resources when present.

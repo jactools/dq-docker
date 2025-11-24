@@ -1,0 +1,83 @@
+name: CI — Build & optionally publish images with embedded Data Docs
+
+# Example workflow: generate Data Docs, build package image, build nginx image
+# embedding Data Docs, and optionally push images to GHCR. Customize the
+# "Generate Data Docs" step to match your project's generation command.
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Generate Data Docs (CUSTOMIZE)
+        id: generate_docs
+        run: |
+          # === CUSTOMIZE THIS STEP ===
+          # Replace the following example with the command(s) that generate
+          # Great Expectations Data Docs for your project and place the site
+          # under `uncommitted/data_docs/local_site`.
+          # Example (replace with your actual command):
+          # DQ_DATA_SOURCE=ds_sample_data python -m dq_docker.run_adls_checkpoint --generate-docs
+
+          if [ -d uncommitted/data_docs/local_site ] && [ "$(ls -A uncommitted/data_docs/local_site)" ]; then
+            echo "Data Docs already present, skipping generation"
+            echo "has_docs=true" >> $GITHUB_OUTPUT
+          else
+            echo "No generated Data Docs found. Please customize this workflow to generate Data Docs before building the nginx image."
+            echo "has_docs=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Build package image
+        run: |
+          # Build the package runtime image using the repo's Dockerfile
+          docker build -t local/dq-docker:latest .
+
+      - name: Build nginx image (embed Data Docs)
+        if: steps.generate_docs.outputs.has_docs == 'true'
+        run: |
+          docker build -t jactools/dq-docker-nginx:latest -f docker/nginx/Dockerfile.prod .
+
+      - name: Save Data Docs artifact
+        if: steps.generate_docs.outputs.has_docs == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-docs-site
+          path: uncommitted/data_docs/local_site
+
+      - name: Log in to GHCR (optional)
+        if: secrets.GHCR_TOKEN != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Tag & push images to GHCR (optional)
+        if: secrets.GHCR_TOKEN != ''
+        run: |
+          OWNER=${{ github.repository_owner }}
+          docker tag local/dq-docker:latest ghcr.io/${OWNER}/dq-docker:latest
+          docker tag jactools/dq-docker-nginx:latest ghcr.io/${OWNER}/dq-docker-nginx:latest || true
+          docker push ghcr.io/${OWNER}/dq-docker:latest
+          docker push ghcr.io/${OWNER}/dq-docker-nginx:latest || true
+
+      - name: Done
+        run: echo "Build finished. If you supplied GHCR_TOKEN the images were pushed to GHCR."

@@ -1,0 +1,12 @@
+FROM nginx:alpine
+
+# Copy custom nginx config if present (build will fail if file missing; CI should ensure it exists)
+COPY docker/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy generated Data Docs into the nginx document root
+# CI should generate site into `uncommitted/data_docs/local_site` before building this image.
+COPY uncommitted/data_docs/local_site /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["/usr/sbin/nginx","-g","daemon off;"]

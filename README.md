@@ -1,5 +1,7 @@
 # dq_docker
 
+Version: 0.2.3
+
 Lightweight toolkit for running data-quality checks with Great Expectations inside Docker.
 
 ## Overview
@@ -25,6 +27,41 @@ python -m dq_docker.run_adls_checkpoint
 # or run directly with docker
 docker run --rm -e DQ_CMD=dq_docker.run_adls_checkpoint -e DQ_PROJECT_ROOT=/usr/src/app -v "$PWD":/usr/src/app <image>
 ```
+
+### Production build and serve (embed Data Docs)
+
+For production deployments you can embed generated Great Expectations
+Data Docs into a dedicated `nginx` image. The repo contains an example CI
+workflow and helper scripts to make this easy.
+
+1. Generate Data Docs into `uncommitted/data_docs/local_site` (for example
+	 `uncommitted/data_docs/local_site/ds_sample_data`). Customize the
+	 generation command to your project; see
+	 `.github/workflows/build-with-data-docs.example.yml` for a CI example.
+
+2. Build production images locally (package image + nginx image embedding Data Docs):
+
+```bash
+./buildit.sh --prod
+```
+
+3. Run production compose (ensure `DQ_DATA_SOURCE` is set):
+
+```bash
+export DQ_DATA_SOURCE=ds_sample_data
+./runit.sh --prod --serve-docs
+# or
+DQ_DATA_SOURCE=ds_sample_data docker compose -f docker-compose.prod.yml up -d
+```
+
+Notes:
+- The `nginx` image that embeds Data Docs is built from
+	`docker/nginx/Dockerfile.prod` and will copy the site from
+	`uncommitted/data_docs/local_site` into `/usr/share/nginx/html` inside the image.
+- In CI prefer copying the generated site into the build workspace and
+	building the nginx image there; this produces a single, deployable
+	artifact with no runtime mount dependencies.
+
 
 ### Environment variables
 
