@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dq-docker"
-version = "0.2.15"
+version = "0.2.16"
 description = "DataQuality Docker project using Great Expectations"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -14,6 +14,8 @@ name = "jactools"
 
 [project.optional-dependencies]
 dev = [ "pytest>=7.0", "pyyaml>=6.0",]
+adls = [ "adlfs>=0.8.2" ]
+delta = [ "deltalake>=0.15.0" ]
 
 [project.license]
 text = "CC0-1.0"
@@ -27,4 +29,4 @@ dq-version = "dq_docker.version_info_cli:main"
 
 [tool.setuptools.packages.find]
 where = [ ".",]
-include = [ "dq_docker*", "dq_great_expectations*",]
+include = [ "dq_docker*", "gx*",]

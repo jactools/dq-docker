@@ -1,0 +1,25 @@
+## ADLS Gen2 datasource example referencing `dq_docker.adls` helpers.
+## Copy to `ds_adls_gen2_with_helpers.yml` and edit values.
+## Example: programmatically build `base_directory` with:
+##   from dq_docker.adls.utils import build_abfs_uri
+##   base_directory = build_abfs_uri('mycontainer', 'sample_data/customers')
+
+datasource_name: ds_adls_gen2_with_helpers
+type: pandas_filesystem
+assets:
+  customers_from_adls:
+    # file type: 'parquet' or 'delta-parquet'
+    type: parquet
+    # base_directory should be an `abfs://<container>/path` URI
+    # You can construct this using `dq_docker.adls.utils.build_abfs_uri` as shown above
+    base_directory: abfs://<your-container>/sample_data/customers
+    reader_options:
+      # storage_options is passed to pandas/fsspec/adlfs. Use env vars for secrets.
+      storage_options:
+        account_name: ${AZURE_STORAGE_ACCOUNT_NAME}  # replace or export env var
+
+# Recommended env vars (see `dq_docker.adls.utils.env_var_names()`):
+# AZURE_STORAGE_ACCOUNT_NAME
+# AZURE_TENANT_ID
+# AZURE_CLIENT_ID
+# AZURE_CLIENT_SECRET
