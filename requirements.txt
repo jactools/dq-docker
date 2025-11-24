@@ -1,0 +1,4 @@
+great_expectations[azure]
+azure-storage-file-datalake
+azure-identity
+pandas

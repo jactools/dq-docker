@@ -1,0 +1,7 @@
+# Development requirements
+pytest
+toml
+black
+isort
+flake8
+pre-commit
