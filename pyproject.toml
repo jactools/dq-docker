@@ -1,29 +1,27 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = [ "setuptools>=61.0", "wheel",]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dq-docker"
-version = "0.2.3"
+version = "0.2.4"
 description = "DataQuality Docker project using Great Expectations"
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "CC0-1.0" }
-authors = [{ name = "jactools" }]
-dependencies = [
-  "great_expectations[azure]",
-  "azure-storage-file-datalake",
-  "azure-identity",
-  "pandas",
-]
+dependencies = [ "great_expectations[azure]", "azure-storage-file-datalake", "azure-identity", "pandas",]
+[[project.authors]]
+name = "jactools"
+
+[project.license]
+text = "CC0-1.0"
 
 [project.urls]
 Homepage = "https://example.com/jactools/dq-docker"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["dq_docker*", "dq_great_expectations*"]
-
 [project.scripts]
 dq-docker-run = "dq_docker.run_adls_checkpoint:main"
 dq-version = "dq_docker.version_info_cli:main"
+
+[tool.setuptools.packages.find]
+where = [ ".",]
+include = [ "dq_docker*", "dq_great_expectations*",]
