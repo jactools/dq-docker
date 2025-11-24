@@ -103,9 +103,9 @@ def test_end_to_end_checkpoint_smoke(tmp_path, caplog):
     shutil.copy(repo_csv, sample_dir / "customers_2019.csv")
 
     # Copy contract file
-    repo_contract = Path.cwd() / "contracts" / "customers_2019.contract.json"
+    repo_contract = Path.cwd() / "contracts" / "customers.contract.json"
     assert repo_contract.exists(), f"Expected contract at {repo_contract}"
-    shutil.copy(repo_contract, contracts_dir / "customers_2019.contract.json")
+    shutil.copy(repo_contract, contracts_dir / "customers.contract.json")
 
     # Write minimal gx config pointing at our temp sample dir
     gx_config_path = gx_dir / "great_expectations.yml"

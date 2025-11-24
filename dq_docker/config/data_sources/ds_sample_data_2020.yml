@@ -1,6 +1,6 @@
 source_folder: dq_great_expectations/sample_data/customers
-asset_name: sample_customers_2019
-batch_definition_name: customers_2019.csv
-batch_definition_path: customers_2019.csv
+asset_name: sample_customers_2020
+batch_definition_name: customers_2020.csv
+batch_definition_path: customers_2020.csv
 expectation_suite_name: adls_data_quality_suite
 definition_name: adls_checkpoint

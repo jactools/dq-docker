@@ -54,21 +54,11 @@ if [[ $PROD -eq 1 ]]; then
 
   # Validate required env var for prod: DQ_DATA_SOURCE must be set
   if [[ -z "${DQ_DATA_SOURCE:-}" ]]; then
-    cat <<'MSG' >&2
-ERROR: Required environment variable missing: DQ_DATA_SOURCE
-
-This script is running in PRODUCTION mode and requires `DQ_DATA_SOURCE`
-to select the per-data-source configuration. Set it to one of the keys
-defined in `dq_docker/config/data_sources.yml` (for example: `ds_sample_data`).
-
-Examples:
-  export DQ_DATA_SOURCE=ds_sample_data
-  ./runit.sh --prod --serve-docs
-
-If you're running tests or developing locally, run without `--prod` to
-avoid strict runtime validation.
-MSG
-    exit 2
+    echo "Warning: DQ_DATA_SOURCE not set. In production mode the runtime will validate all configured data sources."
+    echo "To limit validation to a single source set DQ_DATA_SOURCE to a key from dq_docker/config/data_sources.yml (for example: ds_sample_data)."
+    echo "Example: export DQ_DATA_SOURCE=ds_sample_data"
+  else
+    echo "Validating only data source: ${DQ_DATA_SOURCE}"
   fi
 
   echo "Bringing up production services via ${COMPOSE_FILE}..."
