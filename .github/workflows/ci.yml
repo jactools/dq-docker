@@ -24,6 +24,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest toml
 
+      - name: Set DQ_DATA_SOURCE for tests
+        # Tests expect DQ_DATA_SOURCE to be set (no implicit defaults)
+        run: echo "DQ_DATA_SOURCE=ds_sample_data" >> $GITHUB_ENV
+
       - name: Run unit tests (fast)
         run: |
           # Run the tiny test that validates the pyproject version script.
@@ -56,6 +60,9 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           # Ensure we can parse pyproject.toml and generate requirements
           pip install toml
+          # Ensure PyYAML and dev deps are available so the data-source YAML
+          # loader can run during test collection.
+          pip install -r requirements-dev.txt
           # Generate requirements.txt from pyproject.toml so legacy setup.py / installers
           # that consume requirements.txt remain in sync with pyproject.
           python .github/scripts/generate_requirements.py
@@ -64,5 +71,7 @@ jobs:
           pip install pytest
 
       - name: Run full test suite
+        env:
+          DQ_DATA_SOURCE: ds_sample_data
         run: |
           PYTHONPATH=. pytest -q
