@@ -50,25 +50,17 @@ _ds = DATA_SOURCES.get(DATA_SOURCE_NAME)
 if _ds is None:
     raise RuntimeError(f"Data source '{DATA_SOURCE_NAME}' not found in DATA_SOURCES mapping")
 
-if _ds:
-    # If source_folder was provided as a relative path, join it to PROJECT_ROOT.
-    _sf = _ds.get("source_folder")
-    if _sf:
-        SOURCE_FOLDER = os.path.join(PROJECT_ROOT, _sf) if not os.path.isabs(_sf) else _sf
+# Populate values from the data-source mapping. Since we require the
+# data source to exist above, `_ds` is guaranteed to be a mapping here.
+_sf = _ds.get("source_folder")
+if _sf:
+    SOURCE_FOLDER = os.path.join(PROJECT_ROOT, _sf) if not os.path.isabs(_sf) else _sf
 
-    ASSET_NAME = _ds.get("asset_name")
-    BATCH_DEFINITION_NAME = _ds.get("batch_definition_name")
-    BATCH_DEFINITION_PATH = _ds.get("batch_definition_path")
-    EXPECTATION_SUITE_NAME = _ds.get("expectation_suite_name")
-    DEFINITION_NAME = _ds.get("definition_name")
-else:
-    # Legacy defaults
-    SOURCE_FOLDER = os.path.join(PROJECT_ROOT, "dq_great_expectations", "sample_data", "customers")
-    ASSET_NAME = "sample_customers"
-    BATCH_DEFINITION_NAME = "customers_2019.csv"
-    BATCH_DEFINITION_PATH = "customers_2019.csv"
-    EXPECTATION_SUITE_NAME = "adls_data_quality_suite"
-    DEFINITION_NAME = "adls_checkpoint"
+ASSET_NAME = _ds.get("asset_name")
+BATCH_DEFINITION_NAME = _ds.get("batch_definition_name")
+BATCH_DEFINITION_PATH = _ds.get("batch_definition_path")
+EXPECTATION_SUITE_NAME = _ds.get("expectation_suite_name")
+DEFINITION_NAME = _ds.get("definition_name")
 
 # Checkpoint/result config
 RESULT_FORMAT = {"result_format": "SUMMARY"}
