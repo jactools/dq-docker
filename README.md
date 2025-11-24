@@ -62,13 +62,20 @@ Notes:
 	building the nginx image there; this produces a single, deployable
 	artifact with no runtime mount dependencies.
 
-Note on strict runtime validation
+Note on runtime data-source selection
 
-- The runtime and helper scripts enforce strict validation in production
-  mode: `runit.sh --prod` and `buildit.sh --prod` require the
-  `DQ_DATA_SOURCE` environment variable to be set and point to a known
-  data source key (for example `ds_sample_data`). This is intentional
-  to avoid silently running against an unexpected/default data source.
+- By default (when `DQ_DATA_SOURCE` is not set) the runtime will iterate
+	all configured data sources in `dq_docker/config/data_sources.yml`
+	and run validations for each one in turn. This is useful when you
+	want to validate multiple historical batches (for example
+	`customers_2019` and `customers_2020`) without selecting a single
+	source.
+
+- In production the entrypoint `runit.sh --prod` will emit a warning
+	(rather than failing) when `DQ_DATA_SOURCE` is unset and will proceed
+	to validate all configured sources. To validate a single source,
+	set `DQ_DATA_SOURCE` to the desired source key (for example
+	`ds_sample_data`).
 
 Examples:
 
@@ -88,6 +95,15 @@ export DQ_DATA_SOURCE=ds_sample_data
 
 - Expectation suites are built from ODCS JSON contract files located in `contracts/`.
 - The runtime maps the batch definition name to a contract filename; see `dq_docker/data_contract.py` and `dq_docker/odcs_validator.py` for contract validation and conversion details.
+
+- Canonical contract filenames: the runtime derives the canonical
+	contract filename by stripping a trailing year suffix of the form
+	`_YYYY` from the batch definition name. Provide contracts under
+	`contracts/` using the canonical name (for example
+	`contracts/customers.contract.json`) and ensure the contract's
+	internal `"name"` field matches the canonical name (for example
+	`"customers"`). This avoids maintaining duplicate contract files for
+	each year and keeps expectation suites stable.
 
 ## Testing
 

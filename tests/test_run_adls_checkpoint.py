@@ -133,18 +133,21 @@ def test_run_adls_checkpoint_monkeypatched(tmp_path, caplog):
     # Also set PROJECT_ROOT so the runtime looks for contracts under tmp_path
     rac.PROJECT_ROOT = str(tmp_path)
 
-    # Write a minimal valid contract at PROJECT_ROOT/contracts/customers_2019.contract.json
+    # Write a minimal valid contract at PROJECT_ROOT/contracts/customers.contract.json
     contracts_dir = tmp_path / "contracts"
     contracts_dir.mkdir()
     contract = {
         "contract_version": "1.0",
-        "name": "customers_2019",
+        "name": "customers",
         "issued_at": "2025-11-20T00:00:00Z",
         "columns": [{"name": "id", "type": "integer"}],
         "expectations": [{"expectation_type": "ExpectColumnValuesToNotBeNull", "kwargs": {"column": "id"}}],
     }
     import json as _json
-    (contracts_dir / "customers_2019.contract.json").write_text(_json.dumps(contract))
+    (contracts_dir / "customers.contract.json").write_text(_json.dumps(contract))
+    # (legacy contract names are no longer required because the runtime
+    # derives canonical contract names by stripping trailing `_YYYY` from
+    # batch stems; only the canonical contract file is needed for tests.)
 
     # Run main() — it should exercise the flow without raising
     caplog.set_level("INFO")
