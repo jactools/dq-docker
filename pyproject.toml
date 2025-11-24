@@ -27,4 +27,4 @@ dq-version = "dq_docker.version_info_cli:main"
 
 [tool.setuptools.packages.find]
 where = [ ".",]
-include = [ "dq_docker*", "dq_great_expectations*",]
+include = [ "dq_docker*", "gx*",]

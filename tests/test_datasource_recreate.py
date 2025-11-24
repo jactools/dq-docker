@@ -40,15 +40,15 @@ class FakeContext:
 
 def test_ensure_pandas_filesystem_recreates_when_base_dir_differs():
     # Existing datasource points at a container path
-    existing = FakeDatasource("ds_sample_data", "/usr/src/app/dq_great_expectations/sample_data/customers")
+    existing = FakeDatasource("ds_sample_data", "/usr/src/app/gx/sample_data/customers")
     mgr = FakeDataSourcesManager(existing_ds=existing)
     ctx = FakeContext(mgr)
 
     # Call the function under test with a local path that differs
-    result = ds_mod.ensure_pandas_filesystem(ctx, "ds_sample_data", "/home/runner/work/repo/dq_great_expectations/sample_data/customers")
+    result = ds_mod.ensure_pandas_filesystem(ctx, "ds_sample_data", "/home/runner/work/repo/gx/sample_data/customers")
 
     # Manager should have deleted the old datasource and added a new one
     assert mgr.deleted or mgr.added_with is not None
     assert mgr.added_with[0] == "ds_sample_data"
-    assert mgr.added_with[1].endswith("dq_great_expectations/sample_data/customers")
+    assert mgr.added_with[1].endswith("gx/sample_data/customers")
     assert result is not None

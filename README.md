@@ -7,7 +7,7 @@ Lightweight toolkit for running data-quality checks with Great Expectations insi
 ## Overview
 
 - Package: `dq_docker` — runtime entrypoint, configuration (`dq_docker.config`), logging helpers, and utilities.
-- Local GE project: `gx/` (or `dq_great_expectations/`) contains expectations, checkpoints, and sample data used by the runtime.
+- Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
 - Contracts: Expectation suites are produced from JSON Open Data Contracts (ODCS) placed under `contracts/`.
 
 ## Quickstart (local)
