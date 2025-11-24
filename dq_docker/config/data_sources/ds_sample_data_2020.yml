@@ -1,4 +1,4 @@
-source_folder: dq_great_expectations/sample_data/customers
+source_folder: gx/sample_data/customers
 asset_name: sample_customers_2020
 batch_definition_name: customers_2020.csv
 batch_definition_path: customers_2020.csv

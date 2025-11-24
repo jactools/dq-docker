@@ -98,7 +98,7 @@ def test_end_to_end_checkpoint_smoke(tmp_path, caplog):
     contracts_dir.mkdir(parents=True)
 
     # Copy sample CSV from repo into temp sample dir
-    repo_csv = Path.cwd() / "dq_great_expectations" / "sample_data" / "customers" / "customers_2019.csv"
+    repo_csv = Path.cwd() / "gx" / "sample_data" / "customers" / "customers_2019.csv"
     assert repo_csv.exists(), f"Expected sample CSV at {repo_csv}"
     shutil.copy(repo_csv, sample_dir / "customers_2019.csv")
 

@@ -26,7 +26,7 @@ DATA_DOCS_CONFIG = {
     "site_index_builder": {"class_name": "DefaultSiteIndexBuilder"},
     "store_backend": {
         "class_name": "FilesystemStoreBackend",
-        "base_directory": os.path.join(PROJECT_ROOT, "dq_great_expectations", "uncommitted", "data_docs", DATA_DOCS_SITE_NAME),
+        "base_directory": os.path.join(PROJECT_ROOT, "gx", "uncommitted", "data_docs", DATA_DOCS_SITE_NAME),
     },
 }
 
