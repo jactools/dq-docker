@@ -9,7 +9,7 @@ def test_data_sources_yaml_keys_and_adls_config(monkeypatch):
     # Ensure selection is explicit for the test
     monkeypatch.setenv("DQ_DATA_SOURCE", "ds_sample_data")
 
-    ds_mod = importlib.import_module("dq_docker.config.data_sources")
+    ds_mod = importlib.import_module("dq_docker.data_sources")
     importlib.reload(ds_mod)
 
     assert "ds_sample_data" in ds_mod.DATA_SOURCES

@@ -32,15 +32,7 @@ if os.path.exists(_yaml_path):
     DATA_SOURCES = _load_from_yaml(_yaml_path)
 
 if not DATA_SOURCES:
-    DATA_SOURCES = {
-        "ds_sample_data": {
-            "source_folder": os.path.join("dq_great_expectations", "sample_data", "customers"),
-            "asset_name": "sample_customers",
-            "batch_definition_name": "customers_2019.csv",
-            "batch_definition_path": "customers_2019.csv",
-            "expectation_suite_name": "adls_data_quality_suite",
-            "definition_name": "adls_checkpoint",
-        }
-    }
+    raise RuntimeError(
+        f"No data sources found in {_yaml_path}; please create a YAML mapping or add per-source YAML files under `dq_docker/config/data_sources/`.")
 
 __all__ = ["DATA_SOURCES"]

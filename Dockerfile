@@ -13,7 +13,8 @@ WORKDIR /usr/src/app
 RUN pip install --no-cache-dir great_expectations[azure]
 
 # Install necessary libraries for ADLS Gen2 connectivity and data processing
-RUN pip install --no-cache-dir azure-storage-file-datalake azure-identity pandas
+# Include PyYAML so the container runtime can load per-source YAML config files.
+RUN pip install --no-cache-dir azure-storage-file-datalake azure-identity pandas pyyaml
 
 COPY . /usr/src/app
 
