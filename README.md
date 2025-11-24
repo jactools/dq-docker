@@ -1,5 +1,7 @@
 # dq_docker
 
+Version: 0.2.16
+
 Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
 Generated Great Expectations artifacts: `gx/uncommitted/` contains data docs and validation artifacts created at runtime. This directory is ignored by default (`.gitignore`). Regenerate Data Docs with the project DataContext (see the "Production build and serve" section below).
 

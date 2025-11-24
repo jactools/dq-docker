@@ -1,6 +1,15 @@
 ```markdown
 # Release Notes
 
+## 0.2.16 - 2025-11-25
+
+- **Chore:** consolidate Great Expectations project into `gx/` and remove legacy `dq_great_expectations/` directory.
+- **Docs:** updated `README.md` to reference the new `gx/` layout and note `gx/uncommitted/` is ignored by default.
+- **Config:** updated GE and runtime configs to point to `gx/sample_data/customers` and added `gx/uncommitted/` to `.gitignore`.
+- **Tests:** updated tests and validated locally.
+
+---
+
 ## 0.2.3 - 2025-11-24
 
 - **Patch:** bump to `0.2.3`.
