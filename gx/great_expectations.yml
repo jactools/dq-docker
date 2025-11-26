@@ -108,6 +108,6 @@ fluent_datasources:
             partitioner:
               regex: customers_2019.csv$
               param_names: []
-    base_directory: /usr/src/app/dq_great_expectations/sample_data/customers
+    base_directory: /usr/src/app/gx/sample_data/customers
 analytics_enabled:
 data_context_id: 0dabaf07-3397-4169-8517-af9fc23f068c

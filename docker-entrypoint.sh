@@ -24,7 +24,7 @@ fi
 
 # Project layout checks
 CONTRACTS_DIR="${DQ_PROJECT_ROOT}/contracts"
-GX_PROJECT_DIR="${DQ_PROJECT_ROOT}/dq_great_expectations"
+GX_PROJECT_DIR="${DQ_PROJECT_ROOT}/gx"
 SAMPLE_CUSTOMERS_DIR="${GX_PROJECT_DIR}/sample_data/customers"
 
 if [[ ! -d "${GX_PROJECT_DIR}" ]]; then
@@ -42,7 +42,7 @@ if [[ ! -d "${SAMPLE_CUSTOMERS_DIR}" ]]; then
 fi
 
 # Ensure data_docs directory exists (best-effort)
-DATA_DOCS_DIR="${DQ_PROJECT_ROOT}/dq_great_expectations/uncommitted/data_docs/${DATA_DOCS_SITE_NAME:-local_site}"
+DATA_DOCS_DIR="${DQ_PROJECT_ROOT}/gx/uncommitted/data_docs/${DATA_DOCS_SITE_NAME:-local_site}"
 if [[ ! -d "${DATA_DOCS_DIR}" ]]; then
   echo "[entrypoint] Warning: data docs directory not found: ${DATA_DOCS_DIR} (will not create)"
 fi

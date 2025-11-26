@@ -1,13 +1,18 @@
 # dq_docker
 
-Version: 0.2.17
+Version: 0.2.16
+
+Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
+Generated Great Expectations artifacts: `gx/uncommitted/` contains data docs and validation artifacts created at runtime. This directory is ignored by default (`.gitignore`). Regenerate Data Docs with the project DataContext (see the "Production build and serve" section below).
+
+Version: 0.2.3
 
 Lightweight toolkit for running data-quality checks with Great Expectations inside Docker.
 
 ## Overview
 
 - Package: `dq_docker` — runtime entrypoint, configuration (`dq_docker.config`), logging helpers, and utilities.
-- Local GE project: `gx/` (or `dq_great_expectations/`) contains expectations, checkpoints, and sample data used by the runtime.
+- Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
 - Contracts: Expectation suites are produced from JSON Open Data Contracts (ODCS) placed under `contracts/`.
 
 ## Quickstart (local)
@@ -30,7 +35,6 @@ docker run --rm -e DQ_CMD=dq_docker.run_adls_checkpoint -e DQ_PROJECT_ROOT=/usr/
 
 ### Production build and serve (embed Data Docs)
 
-For production deployments you can embed generated Great Expectations
 Data Docs into a dedicated `nginx` image. The repo contains an example CI
 workflow and helper scripts to make this easy.
 

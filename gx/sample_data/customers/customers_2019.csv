@@ -29,13 +29,3 @@ customer_id,first_name,last_name,email,phone,signup_date,last_order_date,total_s
 28,Joseph,Hall,joseph.hall@example.com,555-111-3333,2019-04-02,2019-09-09,88.88,Milwaukee,WI,53202,US,TRUE,1985-05-05,M
 29,Grace,Allen,grace.allen@example.com,555-666-0000,2019-05-17,2019-06-30,60.50,Kansas City,MO,64101,US,TRUE,1996-11-11,F
 30,Samuel,Young,samuel.young@example.com,555-121-3434,2019-06-30,2019-12-15,999.95,Richmond,VA,23219,US,TRUE,1988-08-18,M
-31,Julian,DeVries,julian.devries@example.nl,0612345678,2020-01-05,2020-06-10,120.50,Amsterdam,NH,1011,NL,TRUE,1990-04-12,M
-32,Sanne,Jansen,sanne.jansen@example.nl,0623456789,2020-02-10,2020-07-21,45.00,Rotterdam,ZH,3011,NL,TRUE,1987-09-03,F
-33,Maarten,Bakker,maarten.bakker@example.nl,0634567890,2020-03-15,2020-08-05,230.75,Utrecht,UT,3511,NL,TRUE,1982-11-20,M
-34,Julia,Visser,julia.visser@example.nl,0645678901,2020-04-20,2020-09-12,5.00,Eindhoven,NB,5611,NL,FALSE,1995-02-28,F
-35,Thomas,Smits,thomas.smits@example.nl,0656789012,2020-05-25,2020-10-18,560.00,The Hague,ZH,2511,NL,TRUE,1979-07-07,M
-36,Lisa,Meijer,lisa.meijer@example.nl,0667890123,2020-06-30,2020-11-22,0.00,Groningen,GR,9711,NL,FALSE,1998-12-01,F
-37,Ruben,Kuiper,ruben.kuiper@example.nl,0678901234,2020-07-05,2020-12-05,78.20,Maastricht,LI,6211,NL,WAAR,1992-03-14,M
-38,Anna,Dijk,anna.dijk@example.nl,0689012345,2020-08-10,2020-12-20,999.00,Haarlem,NH,2011,NL,TRUE,1985-05-30,F
-39,Bas,VanDenBosch,bas.vandenbosch@example.nl,0690123456,2020-09-15,2020-12-31,34.40,Leiden,ZH,2311,NL,TRUE,1991-10-10,M
-40,Roos,Hermans,roos.hermans@example.nl,0609876543,2020-10-20,2020-11-11,210.10,Zwolle,OV,8011,NL,ONWAAR,1989-01-22,F

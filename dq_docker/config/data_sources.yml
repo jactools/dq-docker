@@ -1,5 +1,5 @@
 ds_sample_data:
-  source_folder: dq_great_expectations/sample_data/customers
+  source_folder: gx/sample_data/customers
   asset_name: sample_customers_2019
   batch_definition_name: customers_2019.csv
   batch_definition_path: customers_2019.csv
@@ -7,7 +7,7 @@ ds_sample_data:
   definition_name: adls_checkpoint
 
 ds_sample_data_2019:
-  source_folder: dq_great_expectations/sample_data/customers
+  source_folder: gx/sample_data/customers
   asset_name: sample_customers_2019
   batch_definition_name: customers_2019.csv
   batch_definition_path: customers_2019.csv
@@ -15,7 +15,7 @@ ds_sample_data_2019:
   definition_name: adls_checkpoint
 
 ds_sample_data_2020:
-  source_folder: dq_great_expectations/sample_data/customers
+  source_folder: gx/sample_data/customers
   asset_name: sample_customers_2020
   batch_definition_name: customers_2020.csv
   batch_definition_path: customers_2020.csv

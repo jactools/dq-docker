@@ -77,5 +77,10 @@ $RECYCLE.BIN/
 
 # Linux (common)
 .directory
+
 .Trash-*
+
+# Great Expectations generated artifacts
+gx/uncommitted/
+
 
