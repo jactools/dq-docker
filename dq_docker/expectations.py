@@ -1,4 +1,3 @@
-import great_expectations as gx
 from pathlib import Path
 from typing import Optional, Union, Any
 from .data_contract import suite_to_contract, contract_to_suite
@@ -19,6 +18,10 @@ def build_expectation_suite(
     """
     if not contract_path:
         raise ValueError("contract_path is required: provide a path to an ODCS contract JSON file")
+
+    # Import Great Expectations lazily so importing this module during test
+    # collection doesn't pull in optional compiled dependencies like pandas.
+    import great_expectations as gx  # type: ignore
 
     suite = contract_to_suite(contract_path)
     # Ensure the suite has the requested name (optional override)

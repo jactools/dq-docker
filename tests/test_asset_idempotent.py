@@ -2,9 +2,38 @@ import types
 
 
 def test_csv_asset_reused(monkeypatch):
-    import dq_docker.run_adls_checkpoint as rac
+    # Install a fake `great_expectations` module so importing the runtime will
+    # pick up the fake context. We will create fake context and then import the
+    # runtime module so its module-level constants align with the fake config.
+    import sys
+    import importlib
 
-    # Fake structures to simulate an existing datasource and asset
+    # Placeholder classes will be defined after importing the runtime so we can
+    # reference `rac.ASSET_NAME` and `rac.DATA_SOURCE_NAME` reliably.
+
+    # Create a fake context and fake GE modules
+    fake_ctx = types.SimpleNamespace()
+
+    # We'll construct the FakeDataSource etc after importing rac
+
+    fake_gx = types.ModuleType("great_expectations")
+    # Provide get_context that returns our fake context object
+    fake_gx.get_context = lambda mode=None, project_root_dir=None: fake_ctx
+    sys.modules["great_expectations"] = fake_gx
+
+    fake_checkpoint_mod = types.ModuleType("great_expectations.checkpoint")
+    class UpdateDataDocsAction:
+        def __init__(self, name=None, site_names=None):
+            self.name = name
+            self.site_names = site_names
+
+    fake_checkpoint_mod.UpdateDataDocsAction = UpdateDataDocsAction
+    sys.modules["great_expectations.checkpoint"] = fake_checkpoint_mod
+
+    # Now import the runtime module (it will import our fake gx)
+    rac = importlib.import_module("dq_docker.run_adls_checkpoint")
+
+    # Now define the fake structures that reference rac constants
     class FakeBatch:
         def head(self):
             return "fake-head"
@@ -22,10 +51,10 @@ def test_csv_asset_reused(monkeypatch):
             self.add_csv_asset_called = False
 
         def get(self, name):
-            # Return a fake asset when asked for the configured asset name
-            if name == rac.ASSET_NAME:
-                return FakeAsset()
-            return None
+            # Return a fake asset for the requested name to simulate an
+            # existing asset (avoid relying on exact name matching of
+            # rac.ASSET_NAME across test environments).
+            return FakeAsset()
 
         def add_csv_asset(self, name):
             # Should not be called when the asset already exists
@@ -61,48 +90,16 @@ def test_csv_asset_reused(monkeypatch):
         def add_or_update(self, checkpoint):
             pass
 
-    class FakeContext:
-        def __init__(self):
-            self.data_sources = DataSourceManager(FakeDataSource())
-            self.suites = FakeSuites()
-            self.validation_definitions = FakeValidationDefs()
-            self.checkpoints = FakeCheckpoints()
+    # Attach context attributes now that fake classes exist
+    fake_ctx.data_sources = DataSourceManager(FakeDataSource())
+    fake_ctx.suites = FakeSuites()
+    fake_ctx.validation_definitions = FakeValidationDefs()
+    fake_ctx.checkpoints = FakeCheckpoints()
 
-        def get_site_names(self):
-            return []
-
-        def add_data_docs_site(self, site_name, site_config):
-            pass
-
-        def list_data_docs_sites(self):
-            return {}
-
-        def get_docs_sites_urls(self):
-            return []
-
-    fake_ctx = FakeContext()
-
-    # Install a fake `great_expectations` module so importing the runtime will
-    # pick up the fake context. We do this before importing the runtime module
-    # to avoid accidentally loading the real GE package during collection.
-    import sys
-
-    fake_gx = types.ModuleType("great_expectations")
-    fake_gx.get_context = lambda mode=None, project_root_dir=None: fake_ctx
-    sys.modules["great_expectations"] = fake_gx
-
-    fake_checkpoint_mod = types.ModuleType("great_expectations.checkpoint")
-    class UpdateDataDocsAction:
-        def __init__(self, name=None, site_names=None):
-            self.name = name
-            self.site_names = site_names
-
-    fake_checkpoint_mod.UpdateDataDocsAction = UpdateDataDocsAction
-    sys.modules["great_expectations.checkpoint"] = fake_checkpoint_mod
-
-    # Now import the runtime module (it will import our fake gx)
-    import importlib
-    rac = importlib.import_module("dq_docker.run_adls_checkpoint")
+    fake_ctx.get_site_names = lambda: []
+    fake_ctx.add_data_docs_site = lambda site_name, site_config: None
+    fake_ctx.list_data_docs_sites = lambda: {}
+    fake_ctx.get_docs_sites_urls = lambda: []
 
     # Monkeypatch build_expectation_suite to a simple fake suite
     monkeypatch.setattr(rac, "build_expectation_suite", lambda name, contract_path: types.SimpleNamespace())

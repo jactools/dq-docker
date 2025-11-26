@@ -118,6 +118,166 @@ export DQ_DATA_SOURCE=ds_sample_data
 PYTHONPATH=. pytest -q
 ```
 
+### Optional data-source extras
+
+If you want to install runtime support for specific data sources, the package exposes optional extras. Install only what you need:
+
+- ADLS Gen2 support (adlfs):
+
+```bash
+pip install -e '.[adls]'
+```
+
+- Delta Lake reader (deltalake + pyarrow):
+
+```bash
+pip install -e '.[delta]'
+```
+
+- Install both ADLS + Delta together:
+
+```bash
+pip install -e '.[datasources]'
+```
+
+Using extras keeps development environments lean and allows engineers to choose only the drivers they need.
+
+- Install everything (all optional data-source packages and readers):
+
+```bash
+pip install -e '.[all]'
+```
+
+Other data-source extras available:
+
+- Amazon S3 (s3fs):
+
+```bash
+pip install -e '.[s3]'
+```
+
+- Google Cloud Storage (gcsfs):
+
+```bash
+pip install -e '.[gcs]'
+```
+
+- BigQuery (google-cloud-bigquery):
+
+```bash
+pip install -e '.[bigquery]'
+```
+
+- Snowflake (snowflake-connector-python):
+
+```bash
+pip install -e '.[snowflake]'
+```
+
+- Postgres (psycopg2 + SQLAlchemy):
+
+```bash
+pip install -e '.[postgres]'
+```
+
+Note: some drivers (e.g., `deltalake`, `pyarrow`, `snowflake-connector-python`, `psycopg2-binary`) may require platform-specific wheels or build tools. For CI and developer machines, prefer installing prebuilt wheels where possible.
+
+- dbt core (for local model compilation/execution):
+
+```bash
+pip install -e '.[dbt]'
+```
+
+Or install everything including dbt:
+
+```bash
+pip install -e '.[all]'
+```
+
+DBT adapter extras
+
+You can install individual dbt adapters as extras. Example:
+
+- Databricks adapter:
+
+```bash
+pip install -e '.[dbt_databricks]'
+```
+
+- Postgres adapter:
+
+```bash
+pip install -e '.[dbt_postgres]'
+```
+
+- Fabric adapters (fabric / fabricspark):
+
+```bash
+pip install -e '.[dbt_fabric]'
+pip install -e '.[dbt_fabricspark]'
+```
+
+- Redshift adapter:
+
+```bash
+pip install -e '.[dbt_redshift]'
+```
+
+These adapter extras are also included in `.[all]` if you want a single install that includes dbt and common adapters.
+
+Adapter bundles
+
+To simplify installs, the package exposes grouped adapter bundles:
+
+- SQL adapters (Postgres + Redshift):
+
+```bash
+pip install -e '.[dbt_sql_adapters]'
+```
+
+- Fabric adapters (fabric + fabricspark):
+
+```bash
+pip install -e '.[dbt_fabric_adapters]'
+```
+
+- Cloud adapters (Databricks):
+
+```bash
+pip install -e '.[dbt_cloud_adapters]'
+```
+
+- All dbt adapters (databricks, postgres, fabric, fabricspark, redshift):
+
+```bash
+pip install -e '.[dbt_all_adapters]'
+```
+
+These bundles are conveniences that group commonly used adapters so engineers can install only the adapters they need.
+
+Adapter documentation
+
+Short adapter notes and credential hints are available in the `docs/adapters/` folder. Use these links for quick setup:
+
+- ADLS Gen2: `docs/adapters/adls.md`
+- Amazon S3: `docs/adapters/s3.md`
+- Google Cloud Storage: `docs/adapters/gcs.md`
+- BigQuery: `docs/adapters/bigquery.md`
+- Snowflake: `docs/adapters/snowflake.md`
+- Postgres: `docs/adapters/postgres.md`
+- dbt core: `docs/adapters/dbt.md`
+- dbt-databricks: `docs/adapters/dbt_databricks.md`
+- dbt-postgres: `docs/adapters/dbt_postgres.md`
+- dbt-fabric: `docs/adapters/dbt_fabric.md`
+- dbt-fabricspark: `docs/adapters/dbt_fabricspark.md`
+- dbt-redshift: `docs/adapters/dbt_redshift.md`
+
+- Secure examples and CI credential patterns: `docs/adapters/secure.md`
+
+These files contain install hints, common environment variables, and short caveats to help get each adapter working quickly.
+
+
+
 CI
 
 - A GitHub Actions workflow `/.github/workflows/ci.yml` runs the test suite on pushes and PRs to `main`.

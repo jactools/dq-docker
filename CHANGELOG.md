@@ -51,3 +51,11 @@ Notes
 
 - This changelog is derived from `RELEASE_NOTES.md`. Use the release tag names
   (e.g. `v0.2.3`) for publishing and GitHub releases.
+
+## [0.2.17] - 2025-11-26
+
+- Patch release: `0.2.17`.
+- ADLS: added `ADLSClient.from_key_vault()` to fetch Azure Key Vault secrets and populate `AZURE_*` environment variables so `adlfs`/`fsspec` can authenticate without embedding credentials in repo files.
+- Docs: updated adapter docs with secure Key Vault examples and added `docs/adapters/secure.md` snippets for common secret stores and CI usage.
+- Tests & runtime: deferred heavy imports (pandas/deltalake) to function scope and added unit tests for Key Vault integration; updated tests to avoid importing compiled pandas at collection time.
+- Fixes: corrected `pyproject.toml` duplicate extras entry and fixed `dq_docker/adls/utils.py` indentation error discovered during testing.

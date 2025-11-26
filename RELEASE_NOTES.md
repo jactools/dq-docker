@@ -1,12 +1,15 @@
 ```markdown
 # Release Notes
 
-## 0.2.16 - 2025-11-25
+## 0.2.17 - 2025-11-26
 
-- **Chore:** consolidate Great Expectations project into `gx/` and remove legacy `dq_great_expectations/` directory.
-- **Docs:** updated `README.md` to reference the new `gx/` layout and note `gx/uncommitted/` is ignored by default.
-- **Config:** updated GE and runtime configs to point to `gx/sample_data/customers` and added `gx/uncommitted/` to `.gitignore`.
-- **Tests:** updated tests and validated locally.
+- **Patch:** bump to `0.2.17`.
+- **ADLS:** added `ADLSClient.from_key_vault()` convenience constructor to fetch ADLS credentials from Azure Key Vault and populate `AZURE_*` environment variables for `adlfs`/`fsspec` consumption.
+- **Docs:** added secure adapter examples and documented Key Vault usage in `docs/adapters/adls.md` and `docs/adapters/secure.md`.
+- **Tests:** added unit tests for Key Vault helper (`tests/test_adls_keyvault.py`) and made unit tests resilient to environments with binary-incompatible compiled packages by deferring heavy imports and providing per-test fakes where appropriate.
+- **Fixes:** resolved `pyproject.toml` parsing error (duplicate extras entry) and fixed an `IndentationError` in `dq_docker/adls/utils.py` discovered during test runs.
+- **Runtime:** deferred importing of optional heavy dependencies (pandas/deltalake) to function scope to avoid import-time failures in constrained test environments.
+- **Dev:** updated test harness and guidance so the full test suite runs reliably in CI and local developer venvs.
 
 ---
 

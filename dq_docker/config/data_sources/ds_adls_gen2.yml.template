@@ -1,0 +1,20 @@
+## ADLS Gen2 datasource template (rename to ds_adls_gen2.yml and fill in values)
+## Usage notes:
+##  - Install `adlfs` (pip install adlfs) to enable fsspec `abfs://` access.
+##  - Provide authentication via environment variables (service principal
+##    or managed identity). See README for a usage example.
+
+datasource_name: ds_adls_gen2
+type: pandas_filesystem
+assets:
+  sample_adls_container:
+    # file type: 'parquet' or 'delta-parquet'
+    type: parquet
+    # base_directory should be an `abfs://<container>/path` URI
+    base_directory: abfs://<your-container>/sample_data/customers
+
+# Example environment variables recommended for service principal auth:
+# AZURE_STORAGE_ACCOUNT_NAME=<storage account>
+# AZURE_TENANT_ID=<tenant id>
+# AZURE_CLIENT_ID=<client id>
+# AZURE_CLIENT_SECRET=<client secret>
