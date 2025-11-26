@@ -1,6 +1,18 @@
 ```markdown
 # Release Notes
 
+## 0.2.17 - 2025-11-26
+
+- **Patch:** bump to `0.2.17`.
+- **ADLS:** added `ADLSClient.from_key_vault()` convenience constructor to fetch ADLS credentials from Azure Key Vault and populate `AZURE_*` environment variables for `adlfs`/`fsspec` consumption.
+- **Docs:** added secure adapter examples and documented Key Vault usage in `docs/adapters/adls.md` and `docs/adapters/secure.md`.
+- **Tests:** added unit tests for Key Vault helper (`tests/test_adls_keyvault.py`) and made unit tests resilient to environments with binary-incompatible compiled packages by deferring heavy imports and providing per-test fakes where appropriate.
+- **Fixes:** resolved `pyproject.toml` parsing error (duplicate extras entry) and fixed an `IndentationError` in `dq_docker/adls/utils.py` discovered during test runs.
+- **Runtime:** deferred importing of optional heavy dependencies (pandas/deltalake) to function scope to avoid import-time failures in constrained test environments.
+- **Dev:** updated test harness and guidance so the full test suite runs reliably in CI and local developer venvs.
+
+---
+
 ## 0.2.3 - 2025-11-24
 
 - **Patch:** bump to `0.2.3`.
