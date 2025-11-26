@@ -1,8 +1,16 @@
 import io
 import types
-
-import pandas as pd
+import sys
+import types as _types
 import pytest
+
+# Some test environments may have incompatible compiled pandas wheels. Tests
+# that need pandas provide a minimal fake and inject it into `sys.modules`
+# for the duration of the test using `monkeypatch.setitem(sys.modules, 'pandas', fake)`.
+try:
+    import pandas as pd  # type: ignore
+except Exception:
+    pd = None
 
 from dq_docker.adls import utils
 from dq_docker.adls import client as adls_client_mod
@@ -31,12 +39,33 @@ def test_read_csv_calls_pandas(monkeypatch):
 
     called = {}
 
+    # If pandas can't be imported in this environment, inject a minimal fake
+    # module for the duration of the test so we can monkeypatch reader funcs.
+    if pd is None:
+        class _FakeDF:
+            def __init__(self, *args, **kwargs):
+                pass
+
+        def _fake_read_csv_placeholder(*args, **kwargs):
+            raise NotImplementedError
+
+        def _fake_read_parquet_placeholder(*args, **kwargs):
+            raise NotImplementedError
+
+        fake_pd = _types.SimpleNamespace(
+            DataFrame=_FakeDF, read_csv=_fake_read_csv_placeholder, read_parquet=_fake_read_parquet_placeholder
+        )
+        monkeypatch.setitem(sys.modules, "pandas", fake_pd)
+        local_pd = fake_pd
+    else:
+        local_pd = pd
+
     def fake_read_csv(uri, storage_options=None, **kwargs):
         called["uri"] = uri
         called["storage_options"] = storage_options
-        return pd.DataFrame({"a": [1]})
+        return local_pd.DataFrame({"a": [1]})
 
-    monkeypatch.setattr(pd, "read_csv", fake_read_csv)
+    monkeypatch.setattr(local_pd, "read_csv", fake_read_csv, raising=False)
 
     client = ADLSClient()
     df = client.read_csv("container", "path/to/file.csv", storage_options={"opt": "val"})
@@ -66,13 +95,34 @@ def test_read_parquet_calls_pandas(monkeypatch):
 
     called = {}
 
+    # If pandas wasn't importable at module import time, inject a per-test
+    # fake and use it for assertions and monkeypatching.
+    if pd is None:
+        class _FakeDF:
+            def __init__(self, *args, **kwargs):
+                pass
+
+        def _fake_read_csv_placeholder(*args, **kwargs):
+            raise NotImplementedError
+
+        def _fake_read_parquet_placeholder(*args, **kwargs):
+            raise NotImplementedError
+
+        fake_pd = _types.SimpleNamespace(
+            DataFrame=_FakeDF, read_csv=_fake_read_csv_placeholder, read_parquet=_fake_read_parquet_placeholder
+        )
+        monkeypatch.setitem(sys.modules, "pandas", fake_pd)
+        local_pd = fake_pd
+    else:
+        local_pd = pd
+
     def fake_read_parquet(fh, **kwargs):
         # should receive a file-like handle
         assert hasattr(fh, "read")
         called["read"] = True
-        return pd.DataFrame({"p": [2]})
+        return local_pd.DataFrame({"p": [2]})
 
-    monkeypatch.setattr(pd, "read_parquet", fake_read_parquet)
+    monkeypatch.setattr(local_pd, "read_parquet", fake_read_parquet, raising=False)
 
     client = ADLSClient()
     df = client.read_parquet("container", "dir/file.parquet")
