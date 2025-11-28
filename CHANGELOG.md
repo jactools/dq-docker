@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.21] - 2025-11-28
+
+- Patch release: `0.2.21`.
+- Run metadata: preserve and persist a human-friendly `run_name` in Great Expectations validation artifacts by constructing and passing a typed `RunIdentifier` to `Checkpoint.run()` when available; `meta.run_id.run_name` and `meta.run_id.run_time` are now present in persisted validation JSON.
+- GE store hardening: added defensive helpers and an interactive management script `scripts/manage_ge_store.py` to repair, reconcile, or clear stale Great Expectations store entries that can trigger pydantic deserialization crashes. Startup can be configured via `GE_STORE_ACTION`.
+- Runtime & tooling: added `DQ_RUN_NAME` environment variable to override generated run names and added debug logging around checkpoint execution to aid troubleshooting.
+- Docker & CI: ensured `gx/` (local GE project artifacts) is not baked into container images; regenerated `requirements.txt` and `requirements-dev.txt` from `pyproject.toml`; created `requirements-adls.txt` and `requirements-delta.txt` for optional extras. CI installs ADLS extras only when `RUN_ADLS_TESTS=true` to keep default CI runs lightweight.
+- Tests: tightened ADLS test guards so integration tests only run when usable credentials are present.
+- Docs: added `docs/runtime.md` and updated `README.md` to document run metadata propagation, GE store actions, and CI opt-in behavior.
+
 ## [0.2.3] - 2025-11-24
 
 - Patch release: packaging & deployment improvements

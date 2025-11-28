@@ -1,11 +1,11 @@
 # dq_docker
 
-Version: 0.2.16
+Version: 0.2.21
 
-Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
+Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime. The repository intentionally avoids baking developer `gx/` artifacts into production images: `.dockerignore` entries and Dockerfile build patterns prevent `gx/` from being copied into final runtime images. For development you can mount the project into a running container to expose local `gx/` content.
 Generated Great Expectations artifacts: `gx/uncommitted/` contains data docs and validation artifacts created at runtime. This directory is ignored by default (`.gitignore`). Regenerate Data Docs with the project DataContext (see the "Production build and serve" section below).
 
-Version: 0.2.3
+Version: 0.2.21
 
 Lightweight toolkit for running data-quality checks with Great Expectations inside Docker.
 
@@ -341,6 +341,18 @@ CI
 
 - A GitHub Actions workflow `/.github/workflows/ci.yml` runs the test suite on pushes and PRs to `main`.
 - The workflow sets up Python 3.9 and installs `pytest` and `great_expectations` before running the test suite.
+ - The workflow sets up Python 3.13 and installs `pytest` and `great_expectations` before running the test suite. A new optional CI flag
+ 	 `RUN_ADLS_TESTS` can be set to `true` to install ADLS extras (`requirements-adls.txt`) and run ADLS integration tests in CI.
+
+Example GitHub Actions job snippet that enables ADLS test setup when `RUN_ADLS_TESTS=true`:
+
+```yaml
+- name: Install ADLS extras and run ADLS integration tests
+	if: env.RUN_ADLS_TESTS == 'true'
+	run: |
+		python -m pip install -r requirements-adls.txt
+		pytest tests/test_adls_package.py -q
+```
 
 Integration smoke tests
 
@@ -359,6 +371,12 @@ If you want to run tests and also exercise the real GE integration, install `gre
 
 - `pyproject.toml` is the canonical source of the package version.
 - CI includes `.github/scripts/update_pyproject_version.py` and workflows to increment the patch version and run tests. The PR workflow installs `toml` so the version script can run.
+
+### Notable changes in this release (0.2.21)
+
+- Preserve `run_name` metadata: the runtime now constructs and passes a typed `RunIdentifier` (when available) into Great Expectations `Checkpoint.run()` so `run_name` is preserved in validation JSON and Data Docs.
+- Requirements alignment: `requirements.txt` and optional `requirements-*.txt` files are now generated/reconciled from `pyproject.toml`; see `requirements-adls.txt` and `requirements-delta.txt` for data-source extras.
+- CI: optional ADLS extras installation controlled by `RUN_ADLS_TESTS=true` to avoid bloating default CI runs while allowing integration tests when explicitly requested.
 
 ## Serving Data Docs (nginx)
 

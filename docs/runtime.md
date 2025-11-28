@@ -123,6 +123,19 @@ If you'd like this page expanded into a 'how-to' with screenshots of
 Data Docs or a step-by-step recovery procedure for corrupted `gx/` stores,
 I can add that as a follow-up.
 
+**CI and developer notes**
+
+- The repository now generates `requirements.txt` and `requirements-dev.txt` from `pyproject.toml` using `.github/scripts/generate_requirements.py`. Keep `pyproject.toml` as the canonical source of declared dependencies and optional extras.
+- For CI and local developer runs that require ADLS support (e.g. integration tests using `adlfs`), the CI workflow supports an optional environment flag `RUN_ADLS_TESTS=true` which causes the runner to install `requirements-adls.txt` into the created `.venv` before running tests. This keeps default CI runs lightweight while allowing explicit ADLS test runs when requested.
+
+**gx/ and container images**
+
+- The repository intentionally prevents the local Great Expectations project directory `gx/` from being baked into final container images. A combination of `.dockerignore` entries and Dockerfile build patterns ensures `gx/` is not copied into production images by default. For development images you can mount the project into the container at runtime (for example via `docker run -v "$PWD":/usr/src/app`) so the runtime can access local `gx/` artifacts.
+
+**Release notes (brief)**
+
+- v0.2.21: Preserve `run_name` in Great Expectations validation metadata by constructing a `RunIdentifier` when available; reconcile requirements with `pyproject.toml`; add optional CI install for ADLS extras.
+
 Short examples
 
 - Docker Compose override (development): mount the local project and set a

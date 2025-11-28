@@ -1,6 +1,16 @@
 ```markdown
 # Release Notes
 
+## 0.2.21 - 2025-11-28
+
+- **Run metadata:** preserve and persist a human-friendly `run_name` in Great Expectations validation artifacts by constructing and passing a typed `RunIdentifier` to `Checkpoint.run()` when available. This ensures `meta.run_id.run_name` and `meta.run_id.run_time` appear in persisted validation JSON and Data Docs.
+- **GE store hardening:** added defensive helpers and an interactive management script `scripts/manage_ge_store.py` to repair, reconcile, or clear stale Great Expectations store entries that can trigger pydantic deserialization crashes. Startup can now be configured via `GE_STORE_ACTION` to perform safe repair/clear operations.
+- **Runtime & tooling:** introduced `DQ_RUN_NAME` environment variable to override generated run names; added debug logging around checkpoint execution to aid reproducible troubleshooting.
+- **Docker:** ensured `gx/` (local Great Expectations project artifacts) is not baked into container images by updating `.dockerignore` and Dockerfile patterns, preventing accidental inclusion of developer artifacts in production images.
+- **Requirements & CI:** regenerated and reconciled `requirements.txt` and `requirements-dev.txt` from `pyproject.toml`; separated optional extras into `requirements-adls.txt` and `requirements-delta.txt`. CI installs ADLS extras only when `RUN_ADLS_TESTS=true` to keep default CI runs lightweight.
+- **Tests:** tightened ADLS test guards (`tests/test_adls_package.py`) so ADLS integration tests only run when usable credentials are present (connection string or account+key/SAS), preventing spurious failures in CI and local runs without credentials.
+- **Docs & release housekeeping:** added `docs/runtime.md`, updated `README.md`, and prepared release notes and changelog updates for this patch. Branch `fix/runid-preserve-and-adls-test-2` contains the changes and is pushed; open the PR at the printed remote URL to proceed with review.
+
 ## 0.2.17 - 2025-11-26
 
 - **Patch:** bump to `0.2.17`.
