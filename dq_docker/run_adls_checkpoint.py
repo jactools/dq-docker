@@ -12,6 +12,10 @@ from .checkpoint import create_and_run_checkpoint
 
 from .config import gx_config as cfg
 
+# Eager imports: require Great Expectations at module import time
+import great_expectations as gx
+from great_expectations.checkpoint import UpdateDataDocsAction
+
 # Expose module-level names for backwards compatibility with tests and
 # external callers. These will be refreshed inside `main()` after
 # `cfg.validate_runtime()` is called in runtime scenarios.
@@ -43,12 +47,8 @@ def main():
     The function uses lazy imports of Great Expectations internals so tests
     can monkeypatch `great_expectations` when needed.
     """
-    try:
-        import great_expectations as gx
-        from great_expectations.checkpoint import UpdateDataDocsAction
-    except Exception:
-        logger.error("Great Expectations not available; cannot run checkpoint.")
-        return
+    # Great Expectations is imported at module level; if unavailable the
+    # import would have failed earlier and this function will not execute.
 
     logger.info("Attempting to initialize/load project in: %s", PROJECT_ROOT)
 

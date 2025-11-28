@@ -63,7 +63,11 @@ def ensure_batch_definition(asset: Any, name: str, path: str) -> Any:
         logger.info("✅ Batch definition '%s' already exists.", name)
         return bd
     logger.info("Adding batch definition '%s' (path=%s)", name, path)
-    return asset.add_batch_definition_path(name=name, path=path)
+    try:
+        return asset.add_batch_definition_path(name=name, path=path)
+    except Exception:
+        logger.info("Could not add batch definition '%s' (path=%s); skipping.", name, path)
+        return None
 
 
 def get_batch_and_preview(batch_definition: Any):

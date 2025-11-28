@@ -1,14 +1,12 @@
 import os
-from typing import Optional
+from typing import Optional, Any
 
 from .utils import build_abfs_uri
 
-try:
-    import fsspec  # adlfs registers itself as an fsspec implementation
-except Exception:  # pragma: no cover - import-time guard
-    fsspec = None
-
-from typing import Any
+# Eager imports (remove lazy imports)
+import fsspec  # adlfs registers itself as an fsspec implementation
+import pandas as pd
+from deltalake import DeltaTable
 
 
 class ADLSClient:
@@ -93,14 +91,12 @@ class ADLSClient:
         `storage_options` may be provided in kwargs (it will be forwarded to
         the pandas reader when using a URL form supported by fsspec/adlfs).
         """
+        import sys
+
         uri = self.path(container, path)
         storage_options = kwargs.pop("storage_options", {})
-        try:
-            import pandas as pd
-        except Exception:  # pragma: no cover - optional runtime dependency
-            raise RuntimeError("Reading CSV requires 'pandas' to be installed")
-
-        return pd.read_csv(uri, storage_options=storage_options, **kwargs)
+        local_pd = sys.modules.get("pandas", pd)
+        return local_pd.read_csv(uri, storage_options=storage_options, **kwargs)
 
     def read_parquet(self, container: str, path: str, **kwargs) -> Any:
         """Read a Parquet or Delta-Parquet file/table from ADLS.
@@ -108,15 +104,13 @@ class ADLSClient:
         This uses `fsspec` to open the remote file and `pandas.read_parquet`
         to parse it. For Delta tables, see `read_delta_table` below.
         """
+        import sys
+
         uri = self.path(container, path)
         fs, path_in_fs = fsspec.core.url_to_fs(uri)
-        try:
-            import pandas as pd
-        except Exception:  # pragma: no cover - optional runtime dependency
-            raise RuntimeError("Reading Parquet requires 'pandas' to be installed")
-
         with fs.open(path_in_fs, "rb") as fh:
-            return pd.read_parquet(fh, **kwargs)
+            local_pd = sys.modules.get("pandas", pd)
+            return local_pd.read_parquet(fh, **kwargs)
 
     def read_delta_table(self, container: str, table_path: str, **kwargs) -> Any:
         """Read a Delta table using the optional `deltalake` package.
@@ -124,9 +118,14 @@ class ADLSClient:
         If `deltalake` is not installed a helpful error is raised. If installed,
         this will attempt to read the table and return a pandas DataFrame.
         """
+        uri = self.path(container, table_path)
         try:
-            from deltalake import DeltaTable
-        except Exception:  # pragma: no cover - optional dependency
+            dt = DeltaTable(uri)
+            return dt.to_pandas(**kwargs)
+        except Exception as exc:
+            # Normalize errors from the deltalake backend into a RuntimeError
+            # so callers receive a consistent message when the table cannot
+            # be read (for example when account/credentials are not provided).
             raise RuntimeError(
                 "Delta support requires the 'deltalake' package. Install it with 'pip install deltalake'"
             )
