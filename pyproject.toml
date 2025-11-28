@@ -8,7 +8,7 @@ version = "0.2.21"
 description = "DataQuality Docker project using Great Expectations"
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = [ "great_expectations[azure]==1.8.1", "azure-storage-file-datalake", "azure-identity", "pandas>=1.3,<2",]
+dependencies = [ "great_expectations[azure]==1.8.1", "azure-storage-file-datalake", "azure-identity", "pandas>=2.2.3,<3",]
 [[project.authors]]
 name = "jactools"
 

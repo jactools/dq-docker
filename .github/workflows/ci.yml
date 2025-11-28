@@ -18,23 +18,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.13'
 
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml','**/requirements-dev.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install build & test dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          # Install pinned dev dependencies
-          pip install -r requirements-dev.txt
-          # Install the project in editable mode
-          pip install -e .
+          chmod +x ./scripts/setup_dev_env.sh || true
+          # Run the repository's setup script which creates `.venv`, installs dev
+          # dependencies (including great_expectations) and installs the package.
+          bash ./scripts/setup_dev_env.sh
 
       - name: Set DQ_DATA_SOURCE for tests
         run: |
@@ -44,4 +43,6 @@ jobs:
         env:
           DQ_DATA_SOURCE: ds_sample_data
         run: |
-          PYTHONPATH=. pytest -q
+          # Run tests using the venv Python created by the setup script so CI
+          # environment matches local developer setup.
+          PYTHONPATH=. .venv/bin/python -m pytest -q
