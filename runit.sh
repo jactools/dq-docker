@@ -73,7 +73,7 @@ else
 
   echo "Starting runtime via docker compose (service: dq_docker)..."
   # docker compose up --build --remove-orphans dq_docker
-  docker compose up --remove-orphans dq_docker
+  docker compose up --build --remove-orphans dq_docker
 
   echo "Runtime finished."
 

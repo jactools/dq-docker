@@ -5,7 +5,17 @@ from dq_docker.adls import ADLSClient
 
 
 def _has_adls_creds():
-    return bool(os.environ.get("AZURE_STORAGE_ACCOUNT_NAME"))
+    # Consider ADLS credentials present only when we have a usable
+    # authentication combination. Accept either:
+    #  - `AZURE_STORAGE_CONNECTION_STRING`, OR
+    #  - `AZURE_STORAGE_ACCOUNT_NAME` plus one of `AZURE_STORAGE_ACCOUNT_KEY`
+    #    or `AZURE_STORAGE_SAS_TOKEN`/`AZURE_STORAGE_SAS`.
+    if os.environ.get("AZURE_STORAGE_CONNECTION_STRING"):
+        return True
+    account = os.environ.get("AZURE_STORAGE_ACCOUNT_NAME")
+    key = os.environ.get("AZURE_STORAGE_ACCOUNT_KEY")
+    sas = os.environ.get("AZURE_STORAGE_SAS_TOKEN") or os.environ.get("AZURE_STORAGE_SAS")
+    return bool(account and (key or sas))
 
 
 @pytest.mark.skipif(not _has_adls_creds(), reason="No ADLS credentials in environment")

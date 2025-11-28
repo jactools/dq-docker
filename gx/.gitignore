@@ -1,2 +1,11 @@
 
+# Great Expectations project-level ignores
+# Uncommitted artifacts (data_docs, validations, etc.)
 uncommitted/
+
+# Temporary/checkpoint artifacts created during local runs or debugging
+checkpoints/tmp_cp.json
+
+# Generated expectation/validation definition artifacts (may be recreated)
+expectations/*.json
+validation_definitions/*.json

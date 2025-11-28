@@ -8,7 +8,7 @@ from .batch_definition import ensure_batch_definition
 from .batch_definition import get_batch_and_preview
 from .expectation_suite import add_suite_to_context
 from .validation_definition import create_or_get_validation_definition
-from .checkpoint import create_and_run_checkpoint
+from .checkpoint import create_and_run_checkpoint, repair_ge_store, clear_ge_store
 
 from .config import gx_config as cfg
 
@@ -60,6 +60,35 @@ def main():
 
     ensure_data_docs_site(context, DATA_DOCS_SITE_NAME, DATA_DOCS_CONFIG)
     logger.info("✅ Great Expectations Data Context is ready.")
+
+    # Optional: unified GE store action via GE_STORE_ACTION. Accepted values:
+    #  - 'none' (default): do nothing
+    #  - 'repair': run repair_ge_store()
+    #  - 'clear': run clear_ge_store() (destructive)
+    #  - 'repair_and_clear' or 'clear_and_repair': run clear then repair
+    try:
+        action = os.environ.get("GE_STORE_ACTION", "none") or "none"
+        action = str(action).strip().lower()
+        do_clear = "clear" in action
+        do_repair = "repair" in action
+
+        if do_clear:
+            logger.warning("GE_STORE_ACTION requests clear; this will remove stored ValidationDefinitions and Checkpoints.")
+            try:
+                summary = clear_ge_store(context, verbose=True)
+                logger.info("GE store clear summary: %s", summary)
+            except Exception:
+                logger.exception("GE store clear encountered an error; continuing startup.")
+
+        if do_repair:
+            logger.info("GE_STORE_ACTION requests repair; attempting store reconciliation.")
+            try:
+                summary = repair_ge_store(context, verbose=True)
+                logger.info("GE store repair summary: %s", summary)
+            except Exception:
+                logger.exception("GE store repair encountered an error; continuing startup.")
+    except Exception:
+        logger.debug("Could not determine GE_STORE_ACTION flag; skipping store actions.")
 
     from dq_docker.data_sources import DATA_SOURCES as ALL_DATA_SOURCES
 

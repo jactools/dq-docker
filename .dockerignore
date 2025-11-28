@@ -1,0 +1,36 @@
+# Ignore Great Expectations project directory during image build
+# This allows mounting or initializing `gx` at runtime without baking it into the image.
+gx/
+
+# Common ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.venv/
+.venv
+.git
+.gitignore
+.vscode/
+.dist-info/
+*.egg-info/
+*.egg
+build/
+dist/
+.wheelhouse/
+.python-version
+pip-wheel-metadata/
+
+# Local test artifacts
+.pytest_cache/
+coverage.xml
+htmlcov/
+
+# OS files
+.DS_Store
+
+# Docker
+docker-compose.override.yml
+

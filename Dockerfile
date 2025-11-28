@@ -3,8 +3,15 @@ FROM python:3.13 AS builder
 
 WORKDIR /src
 
-# Copy source so the wheel can be built inside the image
-COPY . /src
+# Copy source to a temporary context, remove `gx/`, then move into /src so the
+# final image doesn't contain the `gx` folder even if it's present in the build
+# context. This avoids relying solely on `.dockerignore` and makes the behavior
+# explicit in the Dockerfile.
+COPY . /tmp/context
+RUN rm -rf /tmp/context/gx \
+ && mkdir -p /src \
+ && cp -a /tmp/context/. /src/ \
+ && rm -rf /tmp/context
 
 # Install build tools and build a wheel into /wheels
 RUN python -m pip install --upgrade pip setuptools wheel build \
@@ -40,7 +47,14 @@ COPY --from=builder /wheels/*.whl /tmp/
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-COPY . /usr/src/app
+# Copy the project to a temporary location inside the image, remove `gx/`, then
+# move the rest into the runtime working directory. This guarantees the final
+# runtime image does not contain `gx` while preserving the rest of the repo.
+COPY . /tmp/context
+RUN rm -rf /tmp/context/gx \
+ && mkdir -p /usr/src/app \
+ && cp -a /tmp/context/. /usr/src/app/ \
+ && rm -rf /tmp/context
 
 # Ensure the package root is importable
 ENV PYTHONPATH=/usr/src/app
@@ -48,6 +62,9 @@ ENV PYTHONPATH=/usr/src/app
 # Default environment variables (can be overridden at `docker run`):
 ENV DQ_CMD=dq_docker.version_info_cli
 ENV DQ_PROJECT_ROOT=/usr/src/app
+ENV REINIT_GX=1
+# Unified GE store action: 'none', 'repair', 'clear', or 'repair_and_clear'
+ENV GE_STORE_ACTION=repair
 
 # Install runtime dependencies from the selected requirements file. This will
 # respect the pinned `great_expectations` version declared in the repo. The

@@ -93,7 +93,7 @@ def run_validations(
 
             suite = SimpleNamespace()
 
-        add_suite_to_context_fn(context, suite, expectation_suite_name)
+        suite = add_suite_to_context_fn(context, suite, expectation_suite_name)
         if batch is not None:
             try:
                 batch.expectation_suite = suite
@@ -101,9 +101,76 @@ def run_validations(
                 pass
 
         validation_definition = create_or_get_validation_definition_fn(context, definition_name, batch_definition, suite)
-        validation_results = None
+
+        # Prefer the ValidationDefinition object managed by the DataContext
+        # when available. Some GE backends require the registered object to be
+        # used for updates and runs.
         try:
-            validation_results = validation_definition.run()
+            vd_manager = getattr(context, "validation_definitions", None)
+            get_vd = getattr(vd_manager, "get", None) if vd_manager is not None else None
+            if callable(get_vd):
+                try:
+                    managed_vd = get_vd(definition_name)
+                    if managed_vd is not None:
+                        validation_definition = managed_vd
+                except Exception as exc:
+                    # If deserialization of a stored ValidationDefinition fails
+                    # (for example due to a stale asset reference), attempt to
+                    # remove the stale store entry and recreate the
+                    # ValidationDefinition so execution can continue.
+                    try:
+                        msg = str(exc)
+                    except Exception:
+                        msg = ""
+                    try:
+                        delete_fn = getattr(vd_manager, "delete", None)
+                        if callable(delete_fn):
+                            try:
+                                delete_fn(definition_name)
+                                logger.warning("Deleted stale ValidationDefinition from store due to deserialization error: %s", definition_name)
+                            except Exception:
+                                logger.debug("Failed to delete stale ValidationDefinition '%s' from store (continuing)", definition_name)
+                    except Exception:
+                        logger.debug("Error while attempting to cleanup stale ValidationDefinition: %s", definition_name)
+
+                    # Try to recreate a fresh ValidationDefinition from the
+                    # current in-memory objects. If that fails, continue and
+                    # let downstream logic handle it.
+                    try:
+                        validation_definition = create_or_get_validation_definition_fn(context, definition_name, batch_definition, suite)
+                    except Exception:
+                        logger.debug("Could not recreate ValidationDefinition '%s' after cleaning stale store entry; continuing.", definition_name)
+        except Exception:
+            pass
+
+        validation_results = None
+        # Create a run_name for Data Docs grouping. Prefer explicit env var
+        # `DQ_RUN_NAME` but fall back to a deterministic name including the
+        # validation definition and UTC timestamp.
+        from datetime import datetime, timezone
+
+        env_run_name = os.environ.get("DQ_RUN_NAME")
+        run_time = datetime.now(timezone.utc)
+        default_run_name = f"{definition_name}-{run_time.strftime('%Y%m%dT%H%M%SZ')}"
+        run_name = env_run_name or default_run_name
+
+        # Construct a run_id dictionary that includes the run_name and a
+        # timezone-aware run_time. GE APIs commonly accept a `run_id` mapping
+        # with these keys; prefer passing `run_id` where supported so the
+        # resulting RunIdentifier is complete in Data Docs.
+        run_id = {"run_name": run_name, "run_time": run_time}
+
+        try:
+            # Try passing `run_id` first, then fall back to `run_name`, then
+            # to calling without args for backwards compatibility with test
+            # doubles or older GE versions.
+            try:
+                validation_results = validation_definition.run(run_id=run_id)
+            except TypeError:
+                try:
+                    validation_results = validation_definition.run(run_name=run_name)
+                except TypeError:
+                    validation_results = validation_definition.run()
         except Exception:
             logger.error("ValidationDefinition.run() failed to execute")
 
@@ -114,7 +181,21 @@ def run_validations(
 
         action_list = [UpdateDataDocsAction(name="update_data_docs", site_names=data_docs_site_names)]
 
-        results = create_and_run_checkpoint_fn(context, definition_name, validation_definition, action_list, result_format)
+        # Call create_and_run_checkpoint in a backwards-compatible way:
+        # prefer passing `run_id` (rich) then `run_name`, but fall back to
+        # older signatures that don't accept these kwargs (test harnesses may
+        # monkeypatch a function without the new kwarg).
+        try:
+            try:
+                results = create_and_run_checkpoint_fn(context, definition_name, validation_definition, action_list, result_format, run_id=run_id)
+            except TypeError:
+                try:
+                    results = create_and_run_checkpoint_fn(context, definition_name, validation_definition, action_list, result_format, run_name=run_name)
+                except TypeError:
+                    results = create_and_run_checkpoint_fn(context, definition_name, validation_definition, action_list, result_format)
+        except Exception:
+            results = None
+
         if not results or "success" not in results:
             logger.error("❌ Checkpoint run did not return success status for %s.", src_name)
 

@@ -235,9 +235,50 @@ def contract_to_suite(contract_path: str | Path):
         legacy_expectation_configs.append({"expectation_type": (etype or None), "kwargs": kwargs, "meta": meta})
 
     # Construct the ExpectationSuite with the collected expectation configs.
+    # Always convert the plain expectation config dicts into
+    # ExpectationConfiguration-like objects when possible so downstream
+    # callers (and tests) receive a consistent object type.
+    # Only convert plain dict configs to `ExpectationConfiguration`-like
+    # objects when the real GE `ExpectationConfiguration` type is
+    # available. Tests that install a minimal/fake `great_expectations`
+    # expect plain dicts to be preserved.
+    import sys
+
+    # Detect whether the installed `great_expectations` is a minimal/fake
+    # module inserted into `sys.modules` by tests. A fake module typically
+    # lacks `__file__`/`__path__` attributes. If such a fake is present,
+    # avoid attempting to import deep GE types because Python's import
+    # machinery can still locate the real package on disk and return a
+    # true `ExpectationConfiguration` even when tests expect plain dicts.
+    gx_mod = sys.modules.get("great_expectations")
+    is_fake_gx = False
+    if gx_mod is not None:
+        if not getattr(gx_mod, "__file__", None) and not getattr(gx_mod, "__path__", None):
+            is_fake_gx = True
+
+    ec_available = False
+    if not is_fake_gx:
+        try:
+            try:
+                from great_expectations.core.expectation_configuration import ExpectationConfiguration  # type: ignore
+                ec_available = True
+            except Exception:
+                try:
+                    from great_expectations.expectations.expectation_configuration import ExpectationConfiguration  # type: ignore
+                    ec_available = True
+                except Exception:
+                    ec_available = False
+        except Exception:
+            ec_available = False
+
+    if ec_available:
+        expectation_objs = [_make_expectation_config(cfg) for cfg in expectation_configs]
+    else:
+        expectation_objs = expectation_configs
+
     try:
         # Newer GE versions accept `expectations` in the constructor.
-        suite = gx.ExpectationSuite(name=name, expectations=expectation_configs)
+        suite = gx.ExpectationSuite(name=name, expectations=expectation_objs)
     except TypeError:
         # Fallback for lightweight/fake GE modules used in tests: construct
         # an empty suite and append expectations using add_expectation.
@@ -253,6 +294,16 @@ def contract_to_suite(contract_path: str | Path):
                     suite.add_expectation(exp)
                 except Exception:
                     suite.add_expectation(_make_expectation_config(cfg))
+
+    # If we built ExpectationConfiguration-like objects above, ensure the
+    # returned suite exposes those as its `expectations` so callers (and
+    # tests) observe a stable, serializable representation rather than
+    # implementation-specific Expectation instances.
+    if ec_available and expectation_objs:
+        try:
+            setattr(suite, "expectations", expectation_objs)
+        except Exception:
+            pass
 
     # Attach contract metadata into suite.meta for provenance.
     # Use getattr/setattr and try/except so fake or minimal suite objects

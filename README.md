@@ -15,6 +15,10 @@ Lightweight toolkit for running data-quality checks with Great Expectations insi
 - Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
 - Contracts: Expectation suites are produced from JSON Open Data Contracts (ODCS) placed under `contracts/`.
 
+Documentation
+
+- Runtime behavior and troubleshooting: `docs/runtime.md` — describes `DQ_RUN_NAME`/`run_id` metadata, `GE_STORE_ACTION` startup options, examples, and the `scripts/manage_ge_store.py` CLI for repair/clear operations.
+
 ## Quickstart (local)
 
 1. Run the runtime locally (recommended for development):
@@ -128,6 +132,17 @@ export DQ_DATA_SOURCE=ds_sample_data
 
 - `DQ_CMD`: module path to run inside container (default `dq_docker.run_adls_checkpoint`)
 - `DQ_PROJECT_ROOT`: path inside container that contains the project root (used by the runtime to locate `gx/`, `contracts/`, etc.)
+
+Additional runtime environment variables
+
+- `DQ_RUN_NAME`: optional human-friendly run name to attach to validation runs and Data Docs. If set, the runtime will use this value as the `run_name` and include it in the generated `run_id` metadata. If not set, the runtime generates a deterministic default run name of the form `<definition_name>-YYYYMMDDTHHMMSSZ`.
+- `GE_STORE_ACTION`: controls best-effort store reconciliation at startup. Accepted values:
+	- `none` (default): do nothing
+	- `repair`: scan DataContext stores and delete any stored `ValidationDefinition` or `Checkpoint` entries that fail to deserialize
+	- `clear`: destructive — delete all keys in ValidationDefinition/Checkpoint stores
+	- `repair_and_clear` or `clear_and_repair`: combination behavior (order: clear then repair)
+
+These flags are intended to make container startup resilient when the on-disk GE store contains stale or incompatible serialized objects (for example after changing datasources or expectations). Use `GE_STORE_ACTION=repair` in development when you want the runtime to attempt non-destructive cleanup, and prefer `none` for production images unless you intentionally want the runtime to modify the store.
 
 ## Contracts / Expectations
 

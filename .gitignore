@@ -80,7 +80,15 @@ $RECYCLE.BIN/
 
 .Trash-*
 
-# Great Expectations generated artifacts
-gx/uncommitted/
+# Great Expectations generated artifacts (managed in `gx/.gitignore`)
+
+# Temporary files generated during debugging or local runs
+# - tmp_*.json: generic temporary JSON artifacts
+# - tmp*.json: additional temporary names seen in workspace
+tmp_*.json
+tmp*.json
+
+# Example specific temp files
+# (gx-specific checkpoint/temp ignores are kept in `gx/.gitignore`)
 
 

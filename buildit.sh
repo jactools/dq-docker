@@ -12,8 +12,17 @@ REQ_FILE=${REQUIREMENTS_FILE:-requirements-dev.txt}
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
-		--prod)
+		-p|--prod)
 			PROD=1
+			shift
+			;;
+		-r|--requirements-file)
+			shift
+			if [[ $# -eq 0 ]]; then
+				echo "Error: --requirements-file requires an argument" >&2
+				exit 2
+			fi
+			REQ_FILE="$1"
 			shift
 			;;
 		-h|--help)
@@ -25,30 +34,6 @@ while [[ $# -gt 0 ]]; do
 		*)
 			echo "Unknown argument: $1"
 			exit 2
-			;;
-	esac
-done
-
-# Parse optional --requirements-file argument (simple linear parse above only
-# handled known flags; support `--requirements-file foo` explicitly here).
-while [[ $# -gt 0 ]]; do
-	case "$1" in
-		--requirements-file)
-			shift
-			if [[ $# -eq 0 ]]; then
-				echo "Error: --requirements-file requires an argument" >&2
-				exit 2
-			fi
-			REQ_FILE="$1"
-			shift
-			;;
-		--requirements-file=*)
-			REQ_FILE="${1#*=}"
-			shift
-			;;
-		*)
-			# leave other args (handled earlier) alone
-			shift
 			;;
 	esac
 done
