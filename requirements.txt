@@ -1,7 +1,4 @@
-
-# Base runtime dependencies (mirror [project].dependencies in pyproject.toml)
 great_expectations[azure]==1.9.1
 azure-storage-file-datalake
 azure-identity
 pandas>=2.2.3,<3
-
