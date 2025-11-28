@@ -81,7 +81,18 @@ def run_validations(
         if batch_definition_name:
             batch_stem = Path(batch_definition_name).stem
             canonical_stem = re.sub(r"_\d{4}$", "", batch_stem)
-            contract_file = Path(project_root) / "contracts" / f"{canonical_stem}.contract.json"
+            # Prefer YAML contract files if present (support .yml/.yaml),
+            # fall back to the historical .contract.json filename.
+            contracts_dir = Path(project_root) / "contracts"
+            candidates = [f"{canonical_stem}.contract.yml", f"{canonical_stem}.contract.yaml", f"{canonical_stem}.contract.json"]
+            contract_file = None
+            for c in candidates:
+                cand = contracts_dir / c
+                if cand.exists():
+                    contract_file = cand
+                    break
+            if contract_file is None:
+                contract_file = contracts_dir / f"{canonical_stem}.contract.json"
             try:
                 suite = build_expectation_suite_fn(expectation_suite_name, contract_path=str(contract_file))
             except ValueError as exc:

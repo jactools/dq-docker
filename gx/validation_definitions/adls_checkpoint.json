@@ -1,15 +1,15 @@
 {
   "data": {
     "asset": {
-      "id": "84fab23d-b013-4caf-bbba-b3dd819857bc",
+      "id": "14a51ba7-eb63-4cc9-94df-42f73a8cadd1",
       "name": "sample_customers_2019"
     },
     "batch_definition": {
-      "id": "a5e8e51f-5317-4276-b490-0c195e3a8e9c",
+      "id": "45121af9-929d-4c66-8cc9-6d18fcd9392a",
       "name": "customers_2019.csv"
     },
     "datasource": {
-      "id": "5cd211d5-5c53-4337-afb0-ab1167dfee0f",
+      "id": "487f93f4-5bb0-46ea-9056-f8d6ee8f9443",
       "name": "ds_sample_data"
     }
   },

@@ -81,7 +81,59 @@ PY
 fi
 
 if [[ ! -d "${CONTRACTS_DIR}" ]]; then
-  echo "[entrypoint] Warning: contracts dir not found: ${CONTRACTS_DIR} (will not create)"
+  echo "[entrypoint] contracts dir not found: ${CONTRACTS_DIR}; creating..."
+  mkdir -p "${CONTRACTS_DIR}"
+fi
+
+# Allow injecting an ODCS contract at container start via environment or mounted file.
+# - If `DQ_CONTRACT_FILE` is set and points to a readable file inside the container,
+#   copy it into the repository `contracts/` directory (preserving basename).
+# - Alternatively `DQ_CONTRACT_JSON` can contain the raw JSON contract payload; it
+#   will be written to `contracts/<timestamp>-contract.json`.
+if [[ -n "${DQ_CONTRACT_FILE:-}" ]]; then
+  if [[ -r "${DQ_CONTRACT_FILE}" ]]; then
+    dest_file="${CONTRACTS_DIR}/$(basename "${DQ_CONTRACT_FILE}")"
+    echo "[entrypoint] Injecting ODCS contract from DQ_CONTRACT_FILE -> ${dest_file}"
+    cp -- "${DQ_CONTRACT_FILE}" "${dest_file}"
+  else
+    echo "[entrypoint] Warning: DQ_CONTRACT_FILE is set but file is not readable: ${DQ_CONTRACT_FILE}"
+  fi
+elif [[ -n "${DQ_CONTRACT_JSON:-}" ]]; then
+  ts=$(date -u +%Y%m%dT%H%M%SZ)
+  dest_file="${CONTRACTS_DIR}/${ts}-injected.contract.json"
+  echo "[entrypoint] Writing ODCS contract from DQ_CONTRACT_JSON to ${dest_file}"
+  # Write the env content safely
+  printf '%s' "${DQ_CONTRACT_JSON}" > "${dest_file}"
+elif [[ -n "${DQ_CONTRACT_YAML:-}" || -n "${DQ_CONTRACT_YML:-}" ]]; then
+  # Support providing the contract YAML directly in env var. Prefer
+  # DQ_CONTRACT_YAML, fallback to DQ_CONTRACT_YML for convenience.
+  payload="${DQ_CONTRACT_YAML:-${DQ_CONTRACT_YML:-}}"
+  ts=$(date -u +%Y%m%dT%H%M%SZ)
+  tmp_file="/tmp/${ts}-contract.yml"
+  printf '%s' "${payload}" > "${tmp_file}"
+  # Attempt to convert YAML -> JSON using Python (requires PyYAML installed)
+  dest_base="${CONTRACTS_DIR}/${ts}-injected.contract"
+  dest_file="${dest_base}.json"
+  echo "[entrypoint] Writing ODCS contract from DQ_CONTRACT_YAML to ${dest_file} (YAML -> JSON)"
+  if python - <<PY
+import sys
+try:
+    import yaml, json
+    with open('${tmp_file}', 'r') as f:
+        data = yaml.safe_load(f)
+    with open('${dest_file}', 'w') as f:
+        json.dump(data, f, indent=2)
+    sys.exit(0)
+except Exception as e:
+    print(f"[entrypoint] YAML->JSON conversion failed: {e}")
+    sys.exit(2)
+PY
+  then
+    echo "[entrypoint] Wrote converted contract to ${dest_file}"
+  else
+    echo "[entrypoint] Falling back to writing raw YAML to ${dest_file}.yaml"
+    mv "${tmp_file}" "${dest_file}.yaml"
+  fi
 fi
 
 if [[ ! -d "${SAMPLE_CUSTOMERS_DIR}" ]]; then

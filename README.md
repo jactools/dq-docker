@@ -28,6 +28,50 @@ Documentation
 python -m dq_docker.run_adls_checkpoint
 ```
 
+Provide an ODCS contract at container start
+
+- Mount a local contract file into the container and point `DQ_CONTRACT_FILE` at it. The entrypoint will copy the file into the project's `contracts/` directory at startup:
+
+```bash
+docker run --rm \
+	-e DQ_CMD=dq_docker.run_adls_checkpoint \
+	-e DQ_PROJECT_ROOT=/usr/src/app \
+	-e DQ_CONTRACT_FILE=/tmp/my_contract.contract.json \
+	-v "$PWD":/usr/src/app \
+	-v "$PWD/contracts/my_contract.contract.json":/tmp/my_contract.contract.json:ro \
+	<image>
+```
+
+- Or provide the contract JSON directly via the `DQ_CONTRACT_JSON` env var (suitable for small contracts). The entrypoint will write it into `contracts/<timestamp>-injected.contract.json`:
+
+- Or provide the contract JSON directly via the `DQ_CONTRACT_JSON` env var (suitable for small contracts). The entrypoint will write it into `contracts/<timestamp>-injected.contract.json`:
+
+```bash
+DQ_CONTRACT_JSON='{"name":"customers","version":1,...}' \
+	python -m dq_docker.run_adls_checkpoint
+```
+
+- YAML contracts supported: you can mount a YAML contract or provide YAML via an env var. The entrypoint will attempt to convert YAML to JSON and write `contracts/<name>.contract.json` which is the format the runtime expects.
+
+Mount a YAML contract file and inject it:
+
+```bash
+docker run --rm \
+	-e DQ_CMD=dq_docker.run_adls_checkpoint \
+	-e DQ_PROJECT_ROOT=/usr/src/app \
+	-e DQ_CONTRACT_FILE=/tmp/my_contract.contract.yml \
+	-v "$PWD":/usr/src/app \
+	-v "$PWD/contracts/my_contract.contract.yml":/tmp/my_contract.contract.yml:ro \
+	<image>
+```
+
+Or provide YAML directly via `DQ_CONTRACT_YAML` (or `DQ_CONTRACT_YML`):
+
+```bash
+export DQ_CONTRACT_YAML=$'name: customers\ncontract_version: 1.0\nexpectations: []'
+python -m dq_docker.run_adls_checkpoint
+```
+
 2. Build and run in Docker (optional):
 
 ```bash

@@ -1,0 +1,62 @@
+contract_version: "1.0"
+name: customers
+description: |
+  Open Data Contract for sample customers_2019.csv: basic null, range and email-format expectations.
+issued_at: "2025-11-20T00:00:00Z"
+issuer: jactools
+columns:
+  - name: customer_id
+    type: integer
+  - name: first_name
+    type: string
+  - name: last_name
+    type: string
+  - name: email
+    type: string
+  - name: phone
+    type: string
+  - name: signup_date
+    type: string
+    format: date
+  - name: last_order_date
+    type: string
+    format: date
+    nullable: true
+  - name: total_spend
+    type: number
+  - name: city
+    type: string
+  - name: state
+    type: string
+  - name: postal_code
+    type: string
+  - name: country
+    type: string
+  - name: is_active
+    type: boolean
+  - name: birth_date
+    type: string
+    format: date
+  - name: gender
+    type: string
+expectations:
+  - expectation_type: ExpectColumnValuesToNotBeNull
+    kwargs:
+      column: customer_id
+    meta:
+      note: Primary identifier should not be null
+
+  - expectation_type: ExpectColumnValuesToBeBetween
+    kwargs:
+      column: total_spend
+      min_value: 100
+      max_value: 999999
+    meta:
+      note: Total spend should be in a reasonable positive range
+
+  - expectation_type: ExpectColumnValuesToMatchRegex
+    kwargs:
+      column: email
+      regex: '[^@]+@[^@]+\.[^@]+'
+    meta:
+      note: Email should match a basic email pattern

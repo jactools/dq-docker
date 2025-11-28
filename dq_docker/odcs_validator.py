@@ -20,10 +20,18 @@ def validate_contract(contract_path: str | Path) -> Dict[str, Any]:
     if not p.exists():
         raise ValueError(f"Contract file not found: {p}")
 
+    text = p.read_text()
+    # Try JSON first for backwards compatibility, then fall back to YAML
     try:
-        data = json.loads(p.read_text())
-    except Exception as exc:
-        raise ValueError(f"Invalid JSON in contract file {p}: {exc}")
+        data = json.loads(text)
+    except Exception:
+        try:
+            # Import PyYAML lazily to avoid hard dependency for non-YAML users
+            import yaml  # type: ignore
+
+            data = yaml.safe_load(text)
+        except Exception as exc:
+            raise ValueError(f"Invalid contract file {p}: not valid JSON or YAML ({exc})")
 
     errors: List[str] = []
 
