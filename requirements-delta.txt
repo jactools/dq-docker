@@ -1,3 +1,4 @@
-deltalake>=0.15.0
-pyarrow>=5.0.0
+deltalake==1.2.1
+# pyarrow is optional; include if your environment requires it:
+# pyarrow==11.0.0
 # deltalake requires native wheels on some platforms; consult deltalake docs

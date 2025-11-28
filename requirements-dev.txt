@@ -1,11 +1,15 @@
 # Development / CI requirements
 -r requirements.txt
-pytest>=7.0
-pyyaml>=6.0
+pytest==9.0.1
+PyYAML==6.0.3
 
-# Optional developer tools (linting/formatting)
-toml
-black
-isort
-flake8
-pre-commit
+# Developer tools (linting/formatting/test)
+black==25.11.0
+isort==7.0.0
+flake8==7.3.0
+pre-commit==4.5.0
+
+# Light-weight style/test helpers (pinned to environment)
+mccabe==0.7.0
+pycodestyle==2.14.0
+pyflakes==3.4.0
