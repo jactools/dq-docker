@@ -1,7 +1,3 @@
-adlfs==2025.8.0
-fsspec==2025.10.0
-azure-storage-file-datalake==12.22.0
-azure-storage-blob==12.27.1
-azure-identity==1.25.1
-azure-datalake-store==0.0.53
-# adlfs will use azure-identity to authenticate (service principal or MSI)
+adlfs>=0.8.2
+# ADLS extras mirror [project.optional-dependencies].adls in pyproject.toml
+azure-identity
