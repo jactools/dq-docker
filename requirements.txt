@@ -2,3 +2,4 @@ great_expectations[azure]==1.9.1
 azure-storage-file-datalake
 azure-identity
 pandas>=2.2.3,<3
+PyYAML>=6.0
