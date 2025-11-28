@@ -8,6 +8,7 @@ set -euo pipefail
 # generated Data Docs (uses `docker-compose.prod.yml` and `docker/nginx/Dockerfile.prod`).
 
 PROD=0
+REQ_FILE=${REQUIREMENTS_FILE:-requirements-dev.txt}
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -18,6 +19,7 @@ while [[ $# -gt 0 ]]; do
 		-h|--help)
 			echo "Usage: $0 [--prod]"
 			echo "  --prod   Build production images (package image + nginx image embedding Data Docs)"
+			echo "  --requirements-file <file>  Choose which requirements file to pass as build-arg (default: $REQ_FILE)"
 			exit 0
 			;;
 		*)
@@ -27,10 +29,37 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
+# Parse optional --requirements-file argument (simple linear parse above only
+# handled known flags; support `--requirements-file foo` explicitly here).
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--requirements-file)
+			shift
+			if [[ $# -eq 0 ]]; then
+				echo "Error: --requirements-file requires an argument" >&2
+				exit 2
+			fi
+			REQ_FILE="$1"
+			shift
+			;;
+		--requirements-file=*)
+			REQ_FILE="${1#*=}"
+			shift
+			;;
+		*)
+			# leave other args (handled earlier) alone
+			shift
+			;;
+	esac
+done
+
+# Allow env override too
+REQ_FILE="${REQUIREMENTS_FILE:-$REQ_FILE}"
+
 if [[ $PROD -eq 1 ]]; then
 	echo "Building production images (package + nginx with embedded Data Docs)..."
 	# Build the package image using the repo Dockerfile and the prod compose file
-	docker compose -f docker-compose.prod.yml build --pull --no-cache dq_docker || true
+	docker compose -f docker-compose.prod.yml build --pull --no-cache --build-arg REQUIREMENTS_FILE=${REQ_FILE} dq_docker || true
 
 	# Validate required env var for prod: DQ_DATA_SOURCE must be set
 	if [[ -z "${DQ_DATA_SOURCE:-}" ]]; then
@@ -67,7 +96,7 @@ MSG
 fi
 
 echo "Building docker images via docker compose (development)..."
-docker compose build --pull --no-cache dq_docker
+docker compose build --pull --no-cache --build-arg REQUIREMENTS_FILE=${REQ_FILE} dq_docker
 
 echo "Build finished. You can run with: docker compose up --build"
 

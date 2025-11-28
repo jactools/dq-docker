@@ -132,7 +132,12 @@ class ADLSClient:
             )
 
         uri = self.path(container, table_path)
-        dt = DeltaTable(uri)
+        try:
+            dt = DeltaTable(uri)
+        except Exception as exc:  # normalize deltalake/backend errors for callers
+            raise RuntimeError(
+                "Failed to load Delta table (deltalake backend error): %s" % exc
+            ) from exc
         return dt.to_pandas(**kwargs)
 
     def list_files(self, container: str, path: str = ""):
