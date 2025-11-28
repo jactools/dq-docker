@@ -27,34 +27,22 @@ import os
 import sys
 from typing import Optional
 
+# Eager imports for helper script (remove lazy imports)
+import fsspec  # type: ignore
+import azure.identity  # type: ignore
+import azure.keyvault.secrets  # type: ignore
+import pandas  # type: ignore
+import deltalake  # type: ignore
+
 
 def check_deps() -> dict:
     """Check optional dependencies and return a map of feature->bool."""
     results = {}
-    try:
-        import fsspec  # noqa: F401
-        results["fsspec"] = True
-    except Exception:
-        results["fsspec"] = False
-
-    try:
-        import azure.identity  # noqa: F401
-        import azure.keyvault.secrets  # noqa: F401
-        results["azure_keyvault"] = True
-    except Exception:
-        results["azure_keyvault"] = False
-
-    try:
-        import pandas  # noqa: F401
-        results["pandas"] = True
-    except Exception:
-        results["pandas"] = False
-
-    try:
-        import deltalake  # noqa: F401
-        results["deltalake"] = True
-    except Exception:
-        results["deltalake"] = False
+    # Presence checks are simple booleans now that imports are eager.
+    results["fsspec"] = True
+    results["azure_keyvault"] = True
+    results["pandas"] = True
+    results["deltalake"] = True
 
     return results
 

@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+import importlib
 
 from .logs import get_logger
 from .data_source import ensure_pandas_filesystem, ensure_csv_asset
@@ -9,6 +10,10 @@ from .expectations import build_expectation_suite
 from .expectation_suite import add_suite_to_context
 from .validation_definition import create_or_get_validation_definition
 from .checkpoint import create_and_run_checkpoint
+
+# Eager imports (remove lazy imports)
+import great_expectations as gx  # noqa: F401
+from great_expectations.checkpoint import UpdateDataDocsAction
 
 logger = get_logger(__name__)
 
@@ -34,17 +39,9 @@ def run_validations(
     else:
         sources = sorted(all_data_sources.items())
 
-    try:
-        import great_expectations as gx  # noqa: F401
-        from great_expectations.checkpoint import UpdateDataDocsAction
-    except Exception:
-        logger.error("Great Expectations not available; cannot run validations.")
-        return None
-
     # Allow test harnesses to monkeypatch helper functions on the
     # `dq_docker.run_adls_checkpoint` module. Prefer using any attributes
     # that have been set there so unit tests can intercept behavior.
-    import importlib
 
     rac = importlib.import_module("dq_docker.run_adls_checkpoint")
 

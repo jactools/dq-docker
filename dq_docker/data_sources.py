@@ -6,17 +6,18 @@ the YAML file located at `dq_docker/config/data_sources.yml`.
 import os
 from typing import Dict
 
+# Eager import: require PyYAML at module import time
+try:
+    import yaml  # type: ignore
+except Exception:
+    raise RuntimeError("PyYAML is required to load data source files; please add it to your dev requirements")
+
 _here = os.path.dirname(__file__)
 # Directory containing per-data-source YAML files
 _dir = os.path.join(_here, "config", "data_sources")
 
 
 def _load_all_yaml(dirpath: str) -> Dict[str, Dict[str, str]]:
-    try:
-        import yaml  # type: ignore
-    except Exception:
-        raise RuntimeError("PyYAML is required to load data source files; please add it to your dev requirements")
-
     mappings: Dict[str, Dict[str, str]] = {}
     for name in sorted(os.listdir(dirpath)):
         if not (name.endswith(".yml") or name.endswith(".yaml")):
