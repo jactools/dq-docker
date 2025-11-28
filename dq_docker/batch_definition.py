@@ -81,18 +81,18 @@ def get_batch_and_preview(batch_definition: Any):
 
     try:
         batch = batch_definition.get_batch()
-        try:
-            preview = getattr(batch, "head", None)
-            if callable(preview):
-                logger.info(preview())
-            else:
-                # sometimes batch behaves like a dataframe
-                try:
-                    logger.info(batch.head())
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        # try:
+        #     preview = getattr(batch, "head", None)
+        #     if callable(preview):
+        #         logger.info(preview())
+        #     else:
+        #         # sometimes batch behaves like a dataframe
+        #         try:
+        #             logger.info(batch.head())
+        #         except Exception:
+        #             pass
+        # except Exception:
+        #     pass
         return batch
     except Exception:
         return None

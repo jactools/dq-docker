@@ -98,18 +98,17 @@ fluent_datasources:
       /Users/jacbeekers/gitrepos/dq_docker/gx/sample_data/customers
   ds_sample_data:
     type: pandas_filesystem
-    id: 8c1373c6-3c47-441e-8846-961b5ca2855b
+    id: 5fab1f69-25df-43bf-9dc4-77a20740303f
     assets:
       sample_customers_2019:
         type: csv
-        id: 41bdbf57-3a8f-4e82-b18f-31ea9212b5ef
+        id: e56b4ba3-07bc-4f00-95b5-6067b4604ba2
         batch_definitions:
           customers_2019.csv:
-            id: b6fe44a6-ff71-46f9-aac4-0ab1014cfb9f
+            id: 7c6a0b76-87d3-448a-b39d-52f7072fb499
             partitioner:
               regex: customers_2019.csv$
               param_names: []
-    base_directory: 
-      /Users/jacbeekers/gitrepos/dq_docker/gx/sample_data/customers
+    base_directory: /usr/src/app/gx/sample_data/customers
 analytics_enabled:
 data_context_id: 0dabaf07-3397-4169-8517-af9fc23f068c
