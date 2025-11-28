@@ -118,6 +118,16 @@ export DQ_DATA_SOURCE=ds_sample_data
 PYTHONPATH=. pytest -q
 ```
 
+For development and CI parity, you can create a local virtualenv and install the real `great_expectations` package (and other dev dependencies) with the included helper script:
+
+```bash
+scripts/setup_dev_env.sh
+source .venv/bin/activate
+pytest -q
+```
+
+This ensures the test environment uses the real `great_expectations[azure]` package as declared in `requirements.txt` / `pyproject.toml`.
+
 ### Optional data-source extras
 
 If you want to install runtime support for specific data sources, the package exposes optional extras. Install only what you need:
