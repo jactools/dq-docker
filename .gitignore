@@ -87,6 +87,7 @@ $RECYCLE.BIN/
 # - tmp*.json: additional temporary names seen in workspace
 tmp_*.json
 tmp*.json
+_tmp_*
 
 # Example specific temp files
 # (gx-specific checkpoint/temp ignores are kept in `gx/.gitignore`)
