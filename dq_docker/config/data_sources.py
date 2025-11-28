@@ -8,16 +8,16 @@ definitions.
 import os
 from typing import Dict
 
+try:
+    import yaml  # type: ignore
+except Exception:
+    raise RuntimeError("PyYAML is required to load data source files; please add it to your dev requirements")
+
 _here = os.path.dirname(__file__)
 _yaml_path = os.path.join(_here, "data_sources.yml")
 
 
 def _load_from_yaml(path: str) -> Dict[str, Dict[str, str]]:
-    try:
-        import yaml  # type: ignore
-    except Exception:
-        return {}
-
     try:
         with open(path, "r", encoding="utf-8") as fh:
             data = yaml.safe_load(fh) or {}

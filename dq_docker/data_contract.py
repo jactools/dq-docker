@@ -62,6 +62,13 @@ def suite_to_contract(suite: Any, *,
     return data
 
 
+def _import_gx_for_suite():
+    # Import GE lazily to avoid importing the package at module import time
+    import importlib
+
+    return importlib.import_module("great_expectations")
+
+
 def contract_to_suite(contract_path: str | Path):
     """Load a contract JSON file and convert it to a Great Expectations ExpectationSuite.
 

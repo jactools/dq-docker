@@ -1,4 +1,5 @@
 from typing import Any, Optional
+import os
 from .logs import get_logger
 
 
@@ -89,9 +90,7 @@ def ensure_pandas_filesystem(ctx: Any, name: str, base_directory: str) -> Any:
         if existing_base:
             try:
                 # Normalize paths for comparison
-                import os as _os
-
-                if _os.path.abspath(str(existing_base)) != _os.path.abspath(str(base_directory)):
+                if os.path.abspath(str(existing_base)) != os.path.abspath(str(base_directory)):
                     logger.info("Data source '%s' exists but base_directory differs; recreating with %s", name, base_directory)
                     try:
                         # Attempt to delete and recreate via the DataSourceManager

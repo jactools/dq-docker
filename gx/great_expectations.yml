@@ -83,31 +83,33 @@ data_docs_sites:
 fluent_datasources:
   ds_sample_data:
     type: pandas_filesystem
-    id: 9a92e806-711c-4c93-a538-8ff4df838bf0
+    id: 43c7eac9-1a4b-4ef2-ac52-39af06c61d16
     assets:
-      sample_customers:
+      sample_customers_2019:
         type: csv
-        id: 544f5f8f-1446-4102-96a6-76c9a5c15dea
+        id: c1139258-9736-4aa5-a1ff-169f60d02b70
         batch_definitions:
           customers_2019.csv:
-            id: 4eee5d79-5d63-44d5-b8df-8d622ea6246b
+            id: d005f3a8-f2fa-443f-ac3e-e0672b931a94
             partitioner:
               regex: customers_2019.csv$
               param_names: []
+    base_directory: 
+      /Users/jacbeekers/gitrepos/dq_docker/gx/sample_data/customers
+  ds_sample_data_2020:
+    type: pandas_filesystem
+    id: 0b3212a6-e116-422f-913b-d4d3e59de2ee
+    assets:
+      sample_customers_2020:
+        type: csv
+        id: 8331166e-1eb8-485b-8e85-66695a7de762
+        batch_definitions:
           customers_2020.csv:
-            id: e7a2b2f3-1234-4a7b-9f2d-abcdef123456
+            id: ccff1ff7-fdf9-47dd-b4ca-db3f70b9dd5a
             partitioner:
               regex: customers_2020.csv$
               param_names: []
-      sample_customers_2019:
-        type: csv
-        id: 15961418-1409-4874-b551-ef5afcbe972c
-        batch_definitions:
-          customers_2019.csv:
-            id: 0b11a400-641f-4bdf-b41a-42a25c7887c0
-            partitioner:
-              regex: customers_2019.csv$
-              param_names: []
-    base_directory: /usr/src/app/gx/sample_data/customers
+    base_directory: 
+      /Users/jacbeekers/gitrepos/dq_docker/gx/sample_data/customers
 analytics_enabled:
 data_context_id: 0dabaf07-3397-4169-8517-af9fc23f068c

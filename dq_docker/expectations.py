@@ -2,6 +2,9 @@ from pathlib import Path
 from typing import Optional, Union, Any
 from .data_contract import suite_to_contract, contract_to_suite
 
+# Eager import: require Great Expectations when this module is imported
+import great_expectations as gx  # type: ignore
+
 
 def build_expectation_suite(
     name: str,

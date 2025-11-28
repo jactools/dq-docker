@@ -3,18 +3,15 @@ from .logs import get_logger
 
 logger = get_logger(__name__)
 
+# Eager import: require Great Expectations at module import time
+import great_expectations as gx
+
 
 def get_context(project_root: str) -> Optional[Any]:
-    """Lazily initialize or load a FileDataContext rooted at `project_root`.
+    """Initialize or load a FileDataContext rooted at `project_root`.
 
-    Returns the context object or None if Great Expectations is not available.
+    This function now imports Great Expectations at module import time.
     """
-    try:
-        import great_expectations as gx
-    except Exception:
-        logger.error("Great Expectations is not available in this environment.")
-        return None
-
     try:
         ctx = gx.get_context(mode="file", project_root_dir=project_root)
         return ctx
