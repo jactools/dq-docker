@@ -1,2 +1,6 @@
 pytest>=7.0
 pyyaml>=6.0
+
+# Development extras for ADLS/local testing
+fsspec==2025.10.0
+adlfs==2025.8.0
