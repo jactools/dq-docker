@@ -35,6 +35,17 @@ jobs:
           # dependencies (including great_expectations) and installs the package.
           bash ./scripts/setup_dev_env.sh
 
+      - name: Install ADLS extras (optional)
+        run: |
+          # Only install ADLS extras when RUN_ADLS_TESTS is explicitly set to 'true'
+          if [ "${RUN_ADLS_TESTS:-}" != "true" ]; then
+            echo "RUN_ADLS_TESTS != 'true' - skipping ADLS extras install"
+            exit 0
+          fi
+          echo "RUN_ADLS_TESTS is true; installing ADLS extras"
+          source .venv/bin/activate
+          pip install -r requirements-adls.txt
+
       - name: Set DQ_DATA_SOURCE for tests
         run: |
           echo "DQ_DATA_SOURCE=ds_sample_data" >> $GITHUB_ENV

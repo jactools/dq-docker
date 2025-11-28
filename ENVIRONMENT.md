@@ -25,6 +25,22 @@ they are required, default values, and where they are referenced.
   - Default: `INFO`.
   - Referenced in: `dq_docker/logs/__init__.py`.
 
+- `DQ_RUN_NAME` (optional)
+  - Purpose: provide a human-friendly run name that will be persisted into Great Expectations validation metadata (visible in Data Docs under `meta.run_id.run_name`). Useful for correlating runs to releases, CI jobs, or ticket IDs.
+  - Default: runtime generates a deterministic fallback name when not provided.
+  - Referenced in: `dq_docker/validator.py`, `dq_docker/checkpoint.py`, `docs/runtime.md`.
+
+- `GE_STORE_ACTION` (optional)
+  - Purpose: controls defensive Great Expectations store actions on startup to handle stale or corrupted store entries that may trigger pydantic deserialization errors.
+  - Allowed values: `none` (default), `repair`, `clear`.
+  - Behavior: when set to `repair` the runtime will attempt best-effort reconciliation of store entries that fail to deserialize; when set to `clear` the runtime will remove store entries that cause failures. Use with care in production — prefer `repair` first.
+  - Referenced in: `scripts/manage_ge_store.py`, `dq_docker/context.py`, startup/shim logic in `runit.sh` / entrypoint.
+
+- `RUN_ADLS_TESTS` (CI only)
+  - Purpose: when set to `true` in CI jobs, instructs workflows to install ADLS optional extras (`requirements-adls.txt`) and run ADLS integration tests. This keeps default CI runs lightweight while allowing opt-in integration testing.
+  - Default: `false` / unset.
+  - Referenced in: `.github/workflows/ci.yml`.
+
 
 ## Notes for CI and tooling
 
@@ -41,3 +57,13 @@ Use the provided script to assert required variables are set:
 ```bash
 python scripts/validate_env.py
 ```
+
+Notes:
+
+- To surface `DQ_RUN_NAME` in Data Docs set `DQ_RUN_NAME` before invoking the runtime, for example:
+
+```bash
+DQ_RUN_NAME="release-2025-11-28" python -m dq_docker.run_adls_checkpoint
+```
+
+- The repository intentionally excludes the `gx/` directory from the final container image via `.dockerignore` and Dockerfile patterns to avoid baking developer-specific Great Expectations artifacts into production images.

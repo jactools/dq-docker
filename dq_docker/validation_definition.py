@@ -1,6 +1,11 @@
 from typing import Any, Optional
 from .logs import get_logger
 
+# Import the conversion helper so we can attempt to turn simple suite
+# containers into a real GE ExpectationSuite before constructing a
+# ValidationDefinition.
+from .expectation_suite import ensure_real_expectation_suite
+
 logger = get_logger(__name__)
 
 
@@ -11,6 +16,15 @@ def create_or_get_validation_definition(context: Any, name: str, batch_definitio
     Great Expectations is imported at module level; this function uses the
     library directly rather than performing lazy imports.
     """
+
+    # Attempt to ensure the suite is a GE-native ExpectationSuite where
+    # possible. This increases the chances the GE ValidationDefinition
+    # model will accept/serialize the object and that DataContext stores
+    # will register it correctly.
+    try:
+        suite = ensure_real_expectation_suite(context, suite, name)
+    except Exception:
+        pass
 
     # Construct ValidationDefinition defensively: some test harnesses install
     # a lightweight/fake `great_expectations` module where

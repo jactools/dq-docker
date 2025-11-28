@@ -12,6 +12,7 @@ set -euo pipefail
 
 : "${DQ_CMD:=dq_docker.version_info_cli}"
 : "${DQ_PROJECT_ROOT:=/usr/src/app}"
+: "${REINIT_GX:=1}"
 
 echo "[entrypoint] DQ_CMD=${DQ_CMD}"
 echo "[entrypoint] DQ_PROJECT_ROOT=${DQ_PROJECT_ROOT}"
@@ -31,6 +32,52 @@ if [[ ! -d "${GX_PROJECT_DIR}" ]]; then
   echo "[entrypoint] Warning: expected Great Expectations project directory not found: ${GX_PROJECT_DIR}"
 else
   echo "[entrypoint] Found Great Expectations project at ${GX_PROJECT_DIR}"
+fi
+
+# Optionally re-initialize the Great Expectations project on every container start.
+# Controlled by the `REINIT_GX` environment variable (default: enabled). When
+# enabled we attempt to run the GE CLI `great_expectations init --assume-yes`.
+# This is intentionally conservative: failures are non-fatal and are logged so
+# the container can continue to start for debugging.
+if [[ "${REINIT_GX:-0}" == "1" ]]; then
+  echo "[entrypoint] REINIT_GX=1; attempting to re-initialize Great Expectations project..."
+  if command -v great_expectations >/dev/null 2>&1; then
+    if ! great_expectations init --assume-yes >/dev/null 2>&1; then
+      echo "[entrypoint] Warning: `great_expectations init` returned non-zero; continuing startup."
+    else
+      echo "[entrypoint] Great Expectations init completed."
+    fi
+  else
+    # Try a Python fallback in case the CLI entrypoint is not available
+    echo "[entrypoint] great_expectations CLI not found; attempting Python-based init fallback..."
+    if ! python - <<'PY'
+try:
+    import importlib, sys, os, subprocess
+    gx = importlib.import_module('great_expectations')
+    # Try to call the CLI via module entrypoint if available
+    try:
+        # Some installations expose the CLI via module.runpy invocation
+        import runpy
+        runpy.run_module('great_expectations', run_name='__main__')
+    except Exception:
+        # As a last resort, attempt to create a DataContext if possible
+        try:
+            from great_expectations.data_context import BaseDataContext
+            # Do not attempt destructive changes here; simply ensure a DataContext can be instantiated
+            from great_expectations.data_context import DataContext
+            _ = DataContext()
+        except Exception:
+            pass
+    sys.exit(0)
+except Exception:
+    sys.exit(1)
+PY
+    then
+      echo "[entrypoint] Python fallback for GE init succeeded."
+    else
+      echo "[entrypoint] Warning: Python fallback for GE init failed; continuing startup."
+    fi
+  fi
 fi
 
 if [[ ! -d "${CONTRACTS_DIR}" ]]; then

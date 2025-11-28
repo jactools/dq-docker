@@ -1,22 +1,22 @@
 {
   "data": {
     "asset": {
-      "id": "544f5f8f-1446-4102-96a6-76c9a5c15dea",
-      "name": "sample_customers"
+      "id": "84fab23d-b013-4caf-bbba-b3dd819857bc",
+      "name": "sample_customers_2019"
     },
     "batch_definition": {
-      "id": "4eee5d79-5d63-44d5-b8df-8d622ea6246b",
+      "id": "a5e8e51f-5317-4276-b490-0c195e3a8e9c",
       "name": "customers_2019.csv"
     },
     "datasource": {
-      "id": "9a92e806-711c-4c93-a538-8ff4df838bf0",
+      "id": "5cd211d5-5c53-4337-afb0-ab1167dfee0f",
       "name": "ds_sample_data"
     }
   },
-  "id": "4c0203ca-4526-4c1d-a9e2-290bbb67d878",
+  "id": "4483b3ba-b0ca-4bf1-85d4-440b3b4376e0",
   "name": "adls_checkpoint",
   "suite": {
-    "id": "6635ee91-70f8-4cf1-8db5-dcb83f863c6f",
-    "name": "customers"
+    "id": "2a81bf77-1de0-4623-99c0-178a247bb5f1",
+    "name": "adls_data_quality_suite"
   }
 }

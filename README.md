@@ -1,11 +1,11 @@
 # dq_docker
 
-Version: 0.2.16
+Version: 0.2.21
 
-Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
+Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime. The repository intentionally avoids baking developer `gx/` artifacts into production images: `.dockerignore` entries and Dockerfile build patterns prevent `gx/` from being copied into final runtime images. For development you can mount the project into a running container to expose local `gx/` content.
 Generated Great Expectations artifacts: `gx/uncommitted/` contains data docs and validation artifacts created at runtime. This directory is ignored by default (`.gitignore`). Regenerate Data Docs with the project DataContext (see the "Production build and serve" section below).
 
-Version: 0.2.3
+Version: 0.2.21
 
 Lightweight toolkit for running data-quality checks with Great Expectations inside Docker.
 
@@ -14,6 +14,10 @@ Lightweight toolkit for running data-quality checks with Great Expectations insi
 - Package: `dq_docker` — runtime entrypoint, configuration (`dq_docker.config`), logging helpers, and utilities.
 - Local GE project: `gx/` contains expectations, checkpoints, and sample data used by the runtime.
 - Contracts: Expectation suites are produced from JSON Open Data Contracts (ODCS) placed under `contracts/`.
+
+Documentation
+
+- Runtime behavior and troubleshooting: `docs/runtime.md` — describes `DQ_RUN_NAME`/`run_id` metadata, `GE_STORE_ACTION` startup options, examples, and the `scripts/manage_ge_store.py` CLI for repair/clear operations.
 
 ## Quickstart (local)
 
@@ -128,6 +132,17 @@ export DQ_DATA_SOURCE=ds_sample_data
 
 - `DQ_CMD`: module path to run inside container (default `dq_docker.run_adls_checkpoint`)
 - `DQ_PROJECT_ROOT`: path inside container that contains the project root (used by the runtime to locate `gx/`, `contracts/`, etc.)
+
+Additional runtime environment variables
+
+- `DQ_RUN_NAME`: optional human-friendly run name to attach to validation runs and Data Docs. If set, the runtime will use this value as the `run_name` and include it in the generated `run_id` metadata. If not set, the runtime generates a deterministic default run name of the form `<definition_name>-YYYYMMDDTHHMMSSZ`.
+- `GE_STORE_ACTION`: controls best-effort store reconciliation at startup. Accepted values:
+	- `none` (default): do nothing
+	- `repair`: scan DataContext stores and delete any stored `ValidationDefinition` or `Checkpoint` entries that fail to deserialize
+	- `clear`: destructive — delete all keys in ValidationDefinition/Checkpoint stores
+	- `repair_and_clear` or `clear_and_repair`: combination behavior (order: clear then repair)
+
+These flags are intended to make container startup resilient when the on-disk GE store contains stale or incompatible serialized objects (for example after changing datasources or expectations). Use `GE_STORE_ACTION=repair` in development when you want the runtime to attempt non-destructive cleanup, and prefer `none` for production images unless you intentionally want the runtime to modify the store.
 
 ## Contracts / Expectations
 
@@ -326,6 +341,18 @@ CI
 
 - A GitHub Actions workflow `/.github/workflows/ci.yml` runs the test suite on pushes and PRs to `main`.
 - The workflow sets up Python 3.9 and installs `pytest` and `great_expectations` before running the test suite.
+ - The workflow sets up Python 3.13 and installs `pytest` and `great_expectations` before running the test suite. A new optional CI flag
+ 	 `RUN_ADLS_TESTS` can be set to `true` to install ADLS extras (`requirements-adls.txt`) and run ADLS integration tests in CI.
+
+Example GitHub Actions job snippet that enables ADLS test setup when `RUN_ADLS_TESTS=true`:
+
+```yaml
+- name: Install ADLS extras and run ADLS integration tests
+	if: env.RUN_ADLS_TESTS == 'true'
+	run: |
+		python -m pip install -r requirements-adls.txt
+		pytest tests/test_adls_package.py -q
+```
 
 Integration smoke tests
 
@@ -344,6 +371,12 @@ If you want to run tests and also exercise the real GE integration, install `gre
 
 - `pyproject.toml` is the canonical source of the package version.
 - CI includes `.github/scripts/update_pyproject_version.py` and workflows to increment the patch version and run tests. The PR workflow installs `toml` so the version script can run.
+
+### Notable changes in this release (0.2.21)
+
+- Preserve `run_name` metadata: the runtime now constructs and passes a typed `RunIdentifier` (when available) into Great Expectations `Checkpoint.run()` so `run_name` is preserved in validation JSON and Data Docs.
+- Requirements alignment: `requirements.txt` and optional `requirements-*.txt` files are now generated/reconciled from `pyproject.toml`; see `requirements-adls.txt` and `requirements-delta.txt` for data-source extras.
+- CI: optional ADLS extras installation controlled by `RUN_ADLS_TESTS=true` to avoid bloating default CI runs while allowing integration tests when explicitly requested.
 
 ## Serving Data Docs (nginx)
 

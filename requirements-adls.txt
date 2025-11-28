@@ -1,2 +1,3 @@
 adlfs>=0.8.2
-# adlfs will use azure-identity to authenticate (service principal or MSI)
+# ADLS extras mirror [project.optional-dependencies].adls in pyproject.toml
+azure-identity

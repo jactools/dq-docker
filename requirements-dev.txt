@@ -1,11 +1,2 @@
-# Development / CI requirements
--r requirements.txt
 pytest>=7.0
 pyyaml>=6.0
-
-# Optional developer tools (linting/formatting)
-toml
-black
-isort
-flake8
-pre-commit

@@ -1,10 +1,4 @@
-# Primary runtime dependencies (kept in sync with `pyproject.toml`)
 great_expectations[azure]==1.9.1
 azure-storage-file-datalake
 azure-identity
 pandas>=2.2.3,<3
-
-# Optional extras (kept in separate files):
-# Optional extras (kept in separate files):
-#  - requirements-adls.txt  (ADLS runtime support: adlfs)
-#  - requirements-delta.txt (Delta Lake reader: deltalake, pyarrow)
