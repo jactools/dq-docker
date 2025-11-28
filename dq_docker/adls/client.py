@@ -127,8 +127,17 @@ class ADLSClient:
             # so callers receive a consistent message when the table cannot
             # be read (for example when account/credentials are not provided).
             raise RuntimeError(
-                "Delta support requires the 'deltalake' package and a configured storage account; see README"
+                "Delta support requires the 'deltalake' package. Install it with 'pip install deltalake'"
+            )
+
+        uri = self.path(container, table_path)
+        try:
+            dt = DeltaTable(uri)
+        except Exception as exc:  # normalize deltalake/backend errors for callers
+            raise RuntimeError(
+                "Failed to load Delta table (deltalake backend error): %s" % exc
             ) from exc
+        return dt.to_pandas(**kwargs)
 
     def list_files(self, container: str, path: str = ""):
         uri = self.path(container, path)

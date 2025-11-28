@@ -33,6 +33,40 @@ python -m dq_docker.run_adls_checkpoint
 docker run --rm -e DQ_CMD=dq_docker.run_adls_checkpoint -e DQ_PROJECT_ROOT=/usr/src/app -v "$PWD":/usr/src/app <image>
 ```
 
+#### Choosing which requirements to install in the image
+
+The `Dockerfile` and helper `./buildit.sh` now support selecting which
+requirements file is used when installing dependencies into the image. This
+allows you to build a development image that includes dev/test packages
+(for example `requirements-dev.txt`) or a slimmer runtime image using
+`requirements.txt`.
+
+- To build the image using the default `requirements.txt` (recommended for
+	runtime images):
+
+```bash
+./buildit.sh
+```
+
+- To build the image using the `requirements-dev.txt` (includes dev deps):
+
+```bash
+./buildit.sh --requirements-file requirements-dev.txt
+```
+
+Under the hood the script passes a Docker build-arg `REQUIREMENTS_FILE` to
+the `docker compose build` command which populates the `ARG/ENV
+REQUIREMENTS_FILE` in the `Dockerfile`. You can also set the environment
+variable yourself before running the script:
+
+```bash
+export REQUIREMENTS_FILE=requirements-dev.txt
+./buildit.sh
+```
+
+This ensures the image installs the same pinned `great_expectations` version
+and other dependencies declared in your repository requirements files.
+
 ### Production build and serve (embed Data Docs)
 
 Data Docs into a dedicated `nginx` image. The repo contains an example CI
